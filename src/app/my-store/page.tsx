@@ -1,12 +1,27 @@
-// src/app/my-store/page.tsx
-import BackButton from '@/components/BackButton'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import MyStoreView from '@/components/MyStoreView'
 
-export default function MyStorePage() {
-  return (
-    <div className="min-h-screen bg-white px-4 py-4 max-w-sm mx-auto">
-      <BackButton />
-      <h1 className="text-base font-semibold text-gray-900 mb-2">My Store</h1>
-      <p className="text-xs text-gray-400">Manage your business listings and profile — coming soon.</p>
-    </div>
-  )
+export const dynamic = 'force-dynamic'
+
+export default async function MyStorePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  const { data: listings } = business
+    ? await supabase
+        .from('listings')
+        .select('*')
+        .eq('business_id', business.id)
+        .order('created_at', { ascending: false })
+    : { data: [] }
+
+  return <MyStoreView business={business} listings={listings || []} />
 }

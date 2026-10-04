@@ -69,12 +69,16 @@ export default function FeedView({
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
           {filtered.length === 0 && (
             <p className="text-xs text-gray-400 w-full text-center py-8">No listings yet in this category.</p>
           )}
           {filtered.map((item) => (
-            <div key={item.id} className="w-[calc(50%-3px)] border border-gray-200 rounded-lg p-1.5">
+            <Link
+              key={item.id}
+              href={`/listing/${item.id}`}
+              className="w-[calc(50%-3px)] border border-gray-200 rounded-lg p-1.5"
+            >
               <div className="w-full h-[58px] bg-gray-50 rounded-md flex items-center justify-center mb-1.5 overflow-hidden">
                 {item.photo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -91,7 +95,7 @@ export default function FeedView({
               <p className="text-[9px] text-gray-500 mt-0.5">
                 {item.price ? `R${item.price}` : item.category} · {item.campus}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
 

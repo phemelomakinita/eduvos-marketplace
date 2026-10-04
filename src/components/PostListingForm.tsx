@@ -19,11 +19,20 @@ export default function PostListingForm({
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
   const [postAsBusiness, setPostAsBusiness] = useState(false)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const router = useRouter()
   const supabase = createClient()
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file)) // local preview before upload
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +46,30 @@ export default function PostListingForm({
       return
     }
 
+    let photoUrl: string | null = null
+
+    // upload photo first, if one was selected
+    if (photoFile) {
+      const fileExt = photoFile.name.split('.').pop()
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('listing-photos')
+        .upload(filePath, photoFile)
+
+      if (uploadError) {
+        setError(`Photo upload failed: ${uploadError.message}`)
+        setLoading(false)
+        return
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('listing-photos')
+        .getPublicUrl(filePath)
+
+      photoUrl = publicUrlData.publicUrl
+    }
+
     const { error: insertError } = await supabase.from('listings').insert({
       user_id: user.id,
       business_id: postAsBusiness && business ? business.id : null,
@@ -45,6 +78,7 @@ export default function PostListingForm({
       price: price ? parseFloat(price) : null,
       description: description || null,
       campus,
+      photo_url: photoUrl,
     })
 
     if (insertError) {
@@ -60,13 +94,21 @@ export default function PostListingForm({
   return (
     <div className="min-h-screen bg-white px-4 py-4 max-w-sm mx-auto">
       <BackButton />
-
       <h1 className="text-base font-semibold text-gray-900 mb-4">New Listing</h1>
 
-      <div className="w-full h-20 border border-dashed border-gray-300 rounded-lg mb-3 flex flex-col items-center justify-center text-gray-400">
-        <span className="text-xl">📷</span>
-        <span className="text-[10px] mt-1">Add a photo (coming soon)</span>
-      </div>
+      {/* real photo upload, with live preview */}
+      <label className="block w-full h-32 border border-dashed border-gray-300 rounded-lg mb-3 flex flex-col items-center justify-center text-gray-400 cursor-pointer overflow-hidden">
+        {photoPreview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+        ) : (
+          <>
+            <span className="text-xl">📷</span>
+            <span className="text-[10px] mt-1">Add a photo</span>
+          </>
+        )}
+        <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+      </label>
 
       <form onSubmit={handleSubmit}>
         <label className="block text-xs text-gray-600 mb-1">Title</label>

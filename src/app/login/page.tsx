@@ -17,6 +17,7 @@ export default function LoginPage() {
 
   // handles the actual sign-in call to Supabase
   async function handleLogin(e: React.FormEvent) {
+    alert('Button was clicked, JS is running')
     e.preventDefault()
     setError('')
     setLoading(true)
