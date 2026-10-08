@@ -12,6 +12,7 @@ export type Business = {
   name: string
   category: string | null
   description: string | null
+  email: string | null
   contact_number: string | null
   logo_url: string | null
   is_verified: boolean
