@@ -11,7 +11,7 @@ export default async function MyStorePage() {
 
   const { data: business } = await supabase
     .from('businesses')
-    .select('*')
+    .select('*, profiles(campus)')
     .eq('owner_id', user.id)
     .maybeSingle()
 
@@ -23,5 +23,5 @@ export default async function MyStorePage() {
         .order('created_at', { ascending: false })
     : { data: [] }
 
-  return <MyStoreView business={business} listings={listings || []} />
+  return <MyStoreView business={business} campus={business?.profiles?.campus ?? null} listings={listings || []} />
 }

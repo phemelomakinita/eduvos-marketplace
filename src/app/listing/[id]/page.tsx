@@ -16,7 +16,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   // listing + the business it was posted under (if any) + the poster's profile
   const { data: listing } = await supabase
     .from('listings')
-    .select('*, businesses(id, name, is_verified), profiles(full_name)')
+    .select('*, businesses(id, name, is_verified, logo_url), profiles(full_name)')
     .eq('id', id)
     .single()
 
@@ -57,6 +57,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           href={`/store/${business.id}`}
           className="flex items-center gap-3 border border-gray-200 rounded-xl p-3 mb-3"
         >
+          {business.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={business.logo_url} alt={business.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+          ) : (
           <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 21l18 0" />
@@ -66,6 +70,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               <path d="M9 21v-4a3 3 0 0 1 6 0v4" />
             </svg>
           </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{business.name}</p>
             <p className="text-xs text-gray-500">

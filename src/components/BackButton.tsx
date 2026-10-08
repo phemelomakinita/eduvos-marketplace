@@ -2,11 +2,19 @@
 
 import { useRouter } from 'next/navigation'
 
-export default function BackButton() {
+export default function BackButton({
+  href = '/feed',
+  label = 'Back to feed',
+  history = false,
+}: {
+  href?: string
+  label?: string
+  history?: boolean
+}) {
   const router = useRouter()
   return (
     <button
-      onClick={() => router.push('/feed')}
+      onClick={() => history ? router.back() : router.push(href)}
       aria-label="Back to feed"
       className="flex items-center gap-1 text-gray-600 mb-4"
     >
@@ -14,7 +22,7 @@ export default function BackButton() {
         <path d="M9 14l-4-4l4-4" />
         <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
       </svg>
-      <span className="text-sm">Back to feed</span>
+      <span className="text-sm">{label}</span>
     </button>
   )
 }
