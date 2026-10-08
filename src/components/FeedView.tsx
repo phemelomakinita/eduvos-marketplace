@@ -22,7 +22,7 @@ export default function FeedView({
       : listings.filter((l) => l.category === activeCategory)
 
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-dvh w-full max-w-full overflow-x-hidden flex flex-col bg-white">
 
       {/* TOP BAR — fixed */}
       <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
@@ -37,7 +37,7 @@ export default function FeedView({
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* SCROLLABLE CONTENT */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 py-3">
 
         <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-3">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
@@ -69,35 +69,35 @@ export default function FeedView({
           ))}
         </div>
 
-                <div className="flex flex-wrap gap-1.5">
-          {filtered.length === 0 && (
-            <p className="text-xs text-gray-400 w-full text-center py-8">No listings yet in this category.</p>
-          )}
-          {filtered.map((item) => (
-            <Link
-              key={item.id}
-              href={`/listing/${item.id}`}
-              className="w-[calc(50%-3px)] border border-gray-200 rounded-lg p-1.5"
-            >
-              <div className="w-full h-[58px] bg-gray-50 rounded-md flex items-center justify-center mb-1.5 overflow-hidden">
-                {item.photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.photo_url} alt={item.title} className="w-full h-full object-cover" />
-                ) : (
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <circle cx="8.5" cy="10" r="1.5" />
-                    <path d="M21 15l-5-5L5 19" />
-                  </svg>
-                )}
-              </div>
-              <p className="text-[11px] font-semibold text-gray-900 leading-tight">{item.title}</p>
-              <p className="text-[9px] text-gray-500 mt-0.5">
-                {item.price ? `R${item.price}` : item.category} · {item.campus}
-              </p>
-            </Link>
-          ))}
-        </div>
+                <div className="grid grid-cols-2 gap-3">
+  {filtered.length === 0 && (
+    <p className="col-span-2 text-xs text-gray-400 text-center py-8">No listings yet in this category.</p>
+  )}
+  {filtered.map((item) => (
+    <Link
+      key={item.id}
+      href={`/listing/${item.id}`}
+      className="block min-w-0 border border-gray-200 rounded-xl p-2"
+    >
+      <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
+        {item.photo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.photo_url} alt={item.title} className="w-full h-full object-contain" />
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <circle cx="8.5" cy="10" r="1.5" />
+            <path d="M21 15l-5-5L5 19" />
+          </svg>
+        )}
+      </div>
+      <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
+      <p className="text-xs text-gray-500 mt-0.5 truncate">
+        {item.price ? `R${item.price}` : item.category} · {item.campus}
+      </p>
+    </Link>
+  ))}
+</div>
 
       </div>
 

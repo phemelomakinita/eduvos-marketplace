@@ -24,8 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}
-             <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script dangerouslySetInnerHTML={{ __html: `eruda.init();` }} />
+
       </body>
     </html>
   );
