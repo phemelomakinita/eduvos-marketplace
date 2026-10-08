@@ -32,6 +32,9 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
           <Link href="/my-store" onClick={onClose} className="block px-5 py-4 text-sm text-gray-800 border-b border-gray-100">
             My Store
           </Link>
+          <Link href="/my-listings" onClick={onClose} className="block px-5 py-4 text-sm text-gray-800 border-b border-gray-100">
+            My Listings
+          </Link>
           <Link href="/settings" onClick={onClose} className="block px-5 py-4 text-sm text-gray-800 border-b border-gray-100">
             Settings
           </Link>

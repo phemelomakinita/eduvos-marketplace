@@ -8,6 +8,8 @@ import BackButton from '@/components/BackButton'
 import type { Listing } from '@/lib/types'
 
 export default function EditListingForm({ listing }: { listing: Listing }) {
+  const backHref = listing.business_id ? '/my-store' : '/my-listings'
+  const backLabel = listing.business_id ? 'Back to My Store' : 'Back to My Listings'
   const [title, setTitle] = useState(listing.title)
   const [category, setCategory] = useState(listing.category || '')
   const [price, setPrice] = useState(listing.price?.toString() || '')
@@ -74,13 +76,13 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
       return
     }
 
-    router.push('/my-store')
+    router.push(backHref)
     router.refresh()
   }
 
   return (
     <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton href="/my-store" label="Back to My Store" />
+      <BackButton href={backHref} label={backLabel} />
       <h1 className="text-base font-semibold text-gray-900 mb-4">Edit Listing</h1>
 
       <label className="relative block w-full aspect-square bg-gray-50 rounded-xl overflow-hidden cursor-pointer">
