@@ -2,6 +2,8 @@ export type Profile = {
   id: string
   full_name: string | null
   campus: string | null
+  avatar_url: string | null
+  allow_messages: boolean
   is_admin: boolean
   created_at: string
 }
