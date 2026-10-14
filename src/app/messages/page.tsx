@@ -1,43 +1,42 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import MessagesView, { type InboxItem } from '@/components/MessagesView'
 
-import { useState } from 'react'
-import BackButton from '@/components/BackButton'
+export const dynamic = 'force-dynamic'
 
-export default function MessagesPage() {
-  const [tab, setTab] = useState<'messages' | 'educhat'>('messages')
+export default async function MessagesPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  return (
-    <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton />
+  const { data: convs } = await supabase.from('conversations').select('*')
+    .not('last_message_at', 'is', null).order('last_message_at', { ascending: false })
+  const conversations = convs ?? []
+  const otherIds = [...new Set(conversations.map((conv) => conv.user_a === user.id ? conv.user_b : conv.user_a))]
+  const { data: people } = otherIds.length
+    ? await supabase.from('profiles').select('id, full_name, avatar_url').in('id', otherIds)
+    : { data: [] }
+  const { data: unreadRows } = await supabase.from('messages').select('conversation_id')
+    .eq('recipient_id', user.id).is('read_at', null)
 
-      <div className="flex border-b border-gray-200 mb-4">
-        <button
-          onClick={() => setTab('messages')}
-          className={`flex-1 text-sm font-medium py-2 border-b-2 ${
-            tab === 'messages' ? 'border-blue-700 text-blue-700' : 'border-transparent text-gray-500'
-          }`}
-        >
-          My Messages
-        </button>
-        <button
-          onClick={() => setTab('educhat')}
-          className={`flex-1 text-sm font-medium py-2 border-b-2 ${
-            tab === 'educhat' ? 'border-blue-700 text-blue-700' : 'border-transparent text-gray-500'
-          }`}
-        >
-          Educhat
-        </button>
-      </div>
+  const peopleById = new Map((people ?? []).map((person) => [person.id, person]))
+  const unreadCounts = new Map<string, number>()
+  for (const row of unreadRows ?? []) {
+    unreadCounts.set(row.conversation_id, (unreadCounts.get(row.conversation_id) ?? 0) + 1)
+  }
+  const items: InboxItem[] = conversations.map((conv) => {
+    const otherId = conv.user_a === user.id ? conv.user_b : conv.user_a
+    const person = peopleById.get(otherId)
+    return {
+      id: conv.id,
+      otherName: person?.full_name ?? 'Student',
+      otherAvatarUrl: person?.avatar_url ?? null,
+      listingTitle: conv.listing_title,
+      preview: conv.last_message_preview ?? '',
+      lastAt: conv.last_message_at!,
+      unread: unreadCounts.get(conv.id) ?? 0,
+    }
+  })
 
-      {tab === 'messages' ? (
-        <p className="text-xs text-gray-400 text-center py-10">
-          Seller conversations will appear here — coming soon.
-        </p>
-      ) : (
-        <p className="text-xs text-gray-400 text-center py-10">
-          Campus-wide chat — coming soon (Supabase realtime).
-        </p>
-      )}
-    </div>
-  )
+  return <MessagesView userId={user.id} items={items} />
 }

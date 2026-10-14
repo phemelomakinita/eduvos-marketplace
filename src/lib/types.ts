@@ -37,10 +37,24 @@ export type Listing = {
 
 export type Message = {
   id: string
-  listing_id: string
+  conversation_id: string
   sender_id: string
   recipient_id: string
   content: string
+  read_at: string | null
+  created_at: string
+}
+
+export type Conversation = {
+  id: string
+  user_a: string
+  user_b: string
+  listing_id: string | null
+  listing_title: string | null
+  listing_photo_url: string | null
+  listing_price: number | null
+  last_message_at: string | null
+  last_message_preview: string | null
   created_at: string
 }
 
