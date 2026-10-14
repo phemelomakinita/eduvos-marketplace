@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import BackButton from '@/components/BackButton'
 import StoreHeader from '@/components/StoreHeader'
+import StoreToolsMenu from '@/components/StoreToolsMenu'
 import type { Business, Listing } from '@/lib/types'
 
 export default function MyStoreView({
@@ -18,6 +19,7 @@ export default function MyStoreView({
   listings: Listing[]
 }) {
   const [items, setItems] = useState(listings)
+  const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -45,9 +47,21 @@ export default function MyStoreView({
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 py-4">
+    <div className="min-h-screen bg-white px-4 py-4 relative">
       <BackButton />
+      <button type="button" onClick={() => setMenuOpen(true)} aria-label="Store tools" aria-expanded={menuOpen} className={`absolute right-3 top-3 w-10 h-10 flex items-center justify-center rounded-full active:bg-gray-100 ${menuOpen ? 'text-gray-900' : 'text-gray-500 active:text-gray-900'}`}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+        </svg>
+      </button>
+      <StoreToolsMenu business={business} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <StoreHeader business={business} campus={campus} showPending />
+      {business.is_paused && (
+        <div className="flex items-center justify-between gap-3 border border-amber-200 bg-amber-50 rounded-xl px-3 py-2 mb-4">
+          <div><p className="text-xs font-semibold text-amber-800">Your store is paused</p><p className="text-[10px] text-amber-700">Hidden from the feed until you resume.</p></div>
+          <button type="button" onClick={resumeStore} className="text-xs font-semibold text-amber-800 border border-amber-300 rounded-md px-3 py-1.5 flex-shrink-0">Resume</button>
+        </div>
+      )}
       <div className="flex gap-2 mb-4">
         <Link href="/edit-store" className="flex-1 text-center border border-gray-300 text-gray-800 rounded-md py-2 text-xs font-medium">Edit store</Link>
         <Link href={`/store/${business.id}`} className="flex-1 text-center border border-gray-300 text-gray-800 rounded-md py-2 text-xs font-medium">View public store</Link>
@@ -101,4 +115,10 @@ export default function MyStoreView({
       )}
     </div>
   )
+
+  async function resumeStore() {
+    if (!business) return
+    const { error } = await supabase.from('businesses').update({ is_paused: false }).eq('id', business.id)
+    if (!error) router.refresh()
+  }
 }

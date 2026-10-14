@@ -18,7 +18,13 @@ export type Business = {
   contact_number: string | null
   logo_url: string | null
   is_verified: boolean
-  verification_status: 'pending' | 'approved' | 'rejected'
+  verification_status: 'none' | 'pending' | 'approved' | 'rejected'
+  is_paused: boolean
+  hub_student_number: string | null
+  verification_note: string | null
+  verification_requested_at: string | null
+  verification_reviewed_at: string | null
+  verification_rejection_reason: string | null
   created_at: string
 }
 

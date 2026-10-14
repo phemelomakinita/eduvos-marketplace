@@ -10,9 +10,11 @@ import BackButton from '@/components/BackButton'
 export default function PostListingForm({
   campus,
   business,
+  storePaused = false,
 }: {
   campus: string
   business: { id: string; name: string } | null
+  storePaused?: boolean
 }) {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -152,7 +154,12 @@ export default function PostListingForm({
           className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white resize-none"
         />
 
-        {business ? (
+        {business ? storePaused ? (
+          <div className="border border-amber-200 bg-amber-50 rounded-lg px-3 py-2 mb-4">
+            <p className="text-xs font-semibold text-amber-800">Your store is paused</p>
+            <p className="text-[10px] text-amber-700 mt-0.5">Resume it in <Link href="/my-store" className="underline">My Store</Link> to post as your store. This listing will be posted as you.</p>
+          </div>
+        ) : (
           <div className="border border-gray-200 rounded-lg px-3 py-2 mb-4 flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-gray-900">Post as {business.name}</p>

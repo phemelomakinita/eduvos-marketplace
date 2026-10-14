@@ -20,10 +20,10 @@ export default async function PostListingPage() {
   console.log('Fetching business...')
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name')
+    .select('id, name, is_paused')
     .eq('owner_id', user.id)
     .maybeSingle()
   console.log('Business fetched:', business)
 
-  return <PostListingForm campus={profile?.campus || ''} business={business} />
+  return <PostListingForm campus={profile?.campus || ''} business={business} storePaused={business?.is_paused ?? false} />
 }

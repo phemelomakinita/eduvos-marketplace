@@ -34,7 +34,13 @@ export default function StoreHeader({
           {business.is_verified ? (
             <span className="inline-block mt-1.5 text-[9px] border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded">✓ Hub Verified</span>
           ) : showPending ? (
-            <span className="inline-block mt-1.5 text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Pending approval</span>
+            business.verification_status === 'pending' ? (
+              <span className="inline-block mt-1.5 text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Verification pending</span>
+            ) : business.verification_status === 'rejected' ? (
+              <span className="inline-block mt-1.5 text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded">Not approved</span>
+            ) : (
+              <span className="inline-block mt-1.5 text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Not verified</span>
+            )
           ) : null}
         </div>
       </div>

@@ -21,8 +21,12 @@ export default async function FeedPage() {
   // real listings, newest first
   const { data: listings } = await supabase
     .from('listings')
-    .select('*')
+    .select('*, businesses(is_paused, is_verified)')
     .order('created_at', { ascending: false })
 
-  return <FeedView firstName={firstName} listings={listings || []} />
+  const visible = (listings || [])
+    .filter((l) => !l.businesses?.is_paused)
+    .sort((a, b) => (b.businesses?.is_verified ? 1 : 0) - (a.businesses?.is_verified ? 1 : 0))
+
+  return <FeedView firstName={firstName} listings={visible} />
 }
