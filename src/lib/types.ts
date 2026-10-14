@@ -78,3 +78,11 @@ export type Event = {
   poster_url: string | null
   created_at: string
 }
+
+export type EduchatMessage = {
+  id: string
+  user_id: string
+  content: string
+  created_at: string
+  profiles: { full_name: string | null; campus: string | null; avatar_url: string | null } | null
+}

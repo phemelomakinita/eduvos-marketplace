@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/Avatar'
 import BackButton from '@/components/BackButton'
 import { createClient } from '@/lib/supabase/client'
 import { inboxTime } from '@/lib/chatTime'
+import MessagesTabs from '@/components/MessagesTabs'
 
 export type InboxItem = {
   id: string
@@ -19,7 +20,6 @@ export type InboxItem = {
 }
 
 export default function MessagesView({ userId, items }: { userId: string; items: InboxItem[] }) {
-  const [tab, setTab] = useState<'messages' | 'educhat'>('messages')
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
 
@@ -35,17 +35,8 @@ export default function MessagesView({ userId, items }: { userId: string; items:
   return (
     <div className="min-h-screen bg-white">
       <div className="px-4 pt-4"><BackButton /></div>
-      <div className="flex border-b border-gray-200">
-        <button type="button" onClick={() => setTab('messages')} className={`flex-1 text-sm py-2.5 border-b-2 ${tab === 'messages' ? 'font-semibold text-blue-700 border-blue-700' : 'text-gray-500 border-transparent'}`}>
-          My Messages
-        </button>
-        <button type="button" onClick={() => setTab('educhat')} className={`flex-1 text-sm py-2.5 border-b-2 ${tab === 'educhat' ? 'font-semibold text-blue-700 border-blue-700' : 'text-gray-500 border-transparent'}`}>
-          Educhat
-        </button>
-      </div>
-      {tab === 'educhat' ? (
-        <p className="text-xs text-gray-400 text-center px-6 py-12">Campus-wide chat is coming soon.</p>
-      ) : items.length === 0 ? (
+      <MessagesTabs active="messages" />
+      {items.length === 0 ? (
         <p className="text-xs text-gray-400 text-center px-6 py-12">No conversations yet. Tap Message seller on a listing to start one.</p>
       ) : items.map((item) => (
         <Link key={item.id} href={`/messages/c/${item.id}`} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
