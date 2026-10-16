@@ -10,7 +10,7 @@ export default async function StorePage({ params }: { params: Promise<{ id: stri
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/store/${id}`)}`)
 
   const { data: business } = await supabase
     .from('businesses')

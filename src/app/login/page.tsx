@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import MarketplaceLogo from '@/components/MarketplaceLogo'
+import { safeNext, NEXT_STORAGE_KEY } from '@/lib/redirects'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -29,8 +30,13 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/feed')  // send them into the app once logged in
-    router.refresh() 
+    let target: string | null = safeNext(new URLSearchParams(window.location.search).get('next'))
+    try {
+      if (!target) target = safeNext(window.localStorage.getItem(NEXT_STORAGE_KEY))
+      window.localStorage.removeItem(NEXT_STORAGE_KEY)
+    } catch {}
+    router.push(target ?? '/feed')
+    router.refresh()
   }
 
   return (
@@ -76,7 +82,14 @@ export default function LoginPage() {
 
           <p className="text-sm text-center text-gray-600">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-blue-700 font-medium">
+            <Link
+              href="/signup"
+              className="text-blue-700 font-medium"
+              onClick={(e) => {
+                const next = safeNext(new URLSearchParams(window.location.search).get('next'))
+                if (next) { e.preventDefault(); router.push(`/signup?next=${encodeURIComponent(next)}`) }
+              }}
+            >
               Sign up
             </Link>
           </p>

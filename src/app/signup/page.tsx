@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import MarketplaceLogo from '@/components/MarketplaceLogo'
+import { safeNext, NEXT_STORAGE_KEY } from '@/lib/redirects'
 
 // all 12 real Eduvos campus locations
 const CAMPUSES = [
@@ -61,6 +62,10 @@ export default function SignupPage() {
     // profile row is created automatically by the database trigger —
     // nothing else to do here except confirm success to the user
     setLoading(false)
+    try {
+      const next = safeNext(new URLSearchParams(window.location.search).get('next'))
+      if (next) window.localStorage.setItem(NEXT_STORAGE_KEY, next)
+    } catch {}
     setCheckEmail(true)
   }
 

@@ -1,11 +1,21 @@
-import BackButton from '@/components/BackButton'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import ShareStoreCard from '@/components/ShareStoreCard'
 
-export default function ShareStorePage() {
-  return (
-    <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton href="/my-store" label="Back to My Store" />
-      <h1 className="text-base font-semibold text-gray-900 mb-2">Share your store</h1>
-      <p className="text-xs text-gray-400">QR code is coming in the next update.</p>
-    </div>
-  )
+export const dynamic = 'force-dynamic'
+
+export default async function ShareStorePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  if (!business) redirect('/register-business')
+
+  return <ShareStoreCard business={business} />
 }

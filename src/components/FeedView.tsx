@@ -6,12 +6,16 @@ import { CATEGORIES } from '@/lib/categories'
 import Sidebar from '@/components/Sidebar'
 import type { Listing } from '@/lib/types'
 
+type FeedListing = Listing & {
+  businesses?: { is_verified?: boolean | null } | null
+}
+
 export default function FeedView({
   firstName,
   listings,
 }: {
   firstName: string
-  listings: Listing[]
+  listings: FeedListing[]
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>('All')
@@ -79,7 +83,7 @@ export default function FeedView({
       href={`/listing/${item.id}`}
       className="block min-w-0 border border-gray-200 rounded-xl p-2"
     >
-      <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
+      <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
         {item.photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.photo_url} alt={item.title} className="w-full h-full object-contain" />
@@ -89,6 +93,18 @@ export default function FeedView({
             <circle cx="8.5" cy="10" r="1.5" />
             <path d="M21 15l-5-5L5 19" />
           </svg>
+        )}
+        {item.businesses?.is_verified && (
+          <span
+            aria-label="Hub Verified"
+            className="absolute top-1.5 left-1.5 flex items-center gap-0.5 bg-white/95 text-blue-700 text-[9px] font-semibold rounded-full pl-1 pr-1.5 py-0.5 shadow-sm"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12l5 5l10 -10" />
+            </svg>
+            Verified
+          </span>
         )}
       </div>
       <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
