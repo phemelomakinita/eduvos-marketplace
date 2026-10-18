@@ -78,10 +78,9 @@ export default function StoreToolsMenu({
             <svg width="20" height="20" className="text-gray-800 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 17l0 .01" /><path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 7l0 .01" /><path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M17 7l0 .01" /><path d="M14 14l3 0" /><path d="M20 14l0 .01" /><path d="M14 14l0 3" /><path d="M14 20l3 0" /><path d="M17 17l3 0" /><path d="M20 17l0 3" /></svg>
             <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900">Copy Business Profile</p><p className="text-[10px] text-gray-500 mt-0.5">QR code and link to share</p></div>
           </Link>
-          <Link href="/my-store/wallet" onClick={onClose} className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
+          <Link href="/my-store/earnings" onClick={onClose} className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
             <svg width="20" height="20" className="text-gray-800 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg>
-            <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900">Wallet</p><p className="text-[10px] text-gray-500 mt-0.5">Your balance and earnings</p></div>
-            <span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">Demo</span>
+            <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900">Earnings</p><p className="text-[10px] text-gray-500 mt-0.5">Your sales and income</p></div>
           </Link>
         </div>
         {business.is_paused ? (
