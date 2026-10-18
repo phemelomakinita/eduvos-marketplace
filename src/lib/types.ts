@@ -103,3 +103,14 @@ export type Order = {
   accepted_at: string | null; paid_at: string | null; confirmed_at: string | null
   sent_at: string | null; completed_at: string | null
 }
+
+export type AppNotification = {
+  id: string
+  kind: string
+  role: 'sale' | 'purchase' | null
+  title: string
+  body: string
+  order_id: string | null
+  read_at: string | null
+  created_at: string
+}

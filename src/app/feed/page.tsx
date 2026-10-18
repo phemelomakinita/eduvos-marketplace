@@ -28,5 +28,8 @@ export default async function FeedPage() {
     .filter((l) => !l.businesses?.is_paused)
     .sort((a, b) => (b.businesses?.is_verified ? 1 : 0) - (a.businesses?.is_verified ? 1 : 0))
 
-  return <FeedView firstName={firstName} listings={visible} />
+  const { count: unreadCount } = await supabase.from('notifications')
+    .select('id', { count: 'exact', head: true }).is('read_at', null)
+
+  return <FeedView firstName={firstName} listings={visible} userId={user.id} unreadCount={unreadCount ?? 0} />
 }

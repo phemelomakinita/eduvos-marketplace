@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function Sidebar({ open, onClose, unreadCount = 0 }: { open: boolean; onClose: () => void; unreadCount?: number }) {
   const router = useRouter()
   const supabase = createClient()
 
@@ -28,6 +28,10 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
         <div className="flex-1 py-4">
           <Link href="/profile" onClick={onClose} className="block px-5 py-4 text-sm text-gray-800 border-b border-gray-100">
             My Profile
+          </Link>
+          <Link href="/notifications" onClick={onClose} className="flex items-center justify-between px-5 py-4 text-sm text-gray-800 border-b border-gray-100">
+            <span>Notifications</span>
+            {unreadCount > 0 && <span className="text-[10px] font-semibold bg-red-600 text-white rounded-full px-1.5 py-0.5">{unreadCount > 99 ? '99+' : unreadCount}</span>}
           </Link>
           <Link href="/my-store" onClick={onClose} className="block px-5 py-4 text-sm text-gray-800 border-b border-gray-100">
             My Store

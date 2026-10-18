@@ -39,13 +39,6 @@ export default function ProfileForm({
     if (!file) return
     setSaved(false)
 
-    let normalise = payshap.replace(/\D/g, '')
-    if (normalise.startsWith('27') && normalise.length === 11) normalise = `0${normalise.slice(2)}`
-    if (normalise !== '' && !/^0\d{9}$/.test(normalise)) {
-      setError('Enter a valid 10-digit cellphone number, for example 071 234 5678.')
-      setLoading(false)
-      return
-    }
     if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
       setError('Please choose an image under 5 MB.')
       setPhotoFile(null)
@@ -63,6 +56,14 @@ export default function ProfileForm({
     setLoading(true)
     setError('')
     setSaved(false)
+
+    let normalise = payshap.replace(/\D/g, '')
+    if (normalise.startsWith('27') && normalise.length === 11) normalise = '0' + normalise.slice(2)
+    if (normalise !== '' && !/^0\d{9}$/.test(normalise)) {
+      setError('Enter a valid 10-digit cellphone number, for example 071 234 5678.')
+      setLoading(false)
+      return
+    }
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()

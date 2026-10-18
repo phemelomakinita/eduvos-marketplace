@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { CATEGORIES } from '@/lib/categories'
 import Sidebar from '@/components/Sidebar'
+import { createClient } from '@/lib/supabase/client'
 import type { Listing } from '@/lib/types'
 
 type FeedListing = Listing & {
@@ -13,12 +15,32 @@ type FeedListing = Listing & {
 export default function FeedView({
   firstName,
   listings,
+  userId,
+  unreadCount,
 }: {
   firstName: string
   listings: FeedListing[]
+  userId: string
+  unreadCount: number
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>('All')
+  const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
+
+  useEffect(() => {
+    const channel = supabase.channel(`feed-notifications-${userId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, () => router.refresh())
+      .subscribe()
+    function refreshWhenVisible() {
+      if (document.visibilityState === 'visible') router.refresh()
+    }
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+    return () => {
+      supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', refreshWhenVisible)
+    }
+  }, [supabase, router, userId])
 
   const filtered =
     activeCategory === 'All'
@@ -31,14 +53,15 @@ export default function FeedView({
       {/* TOP BAR — fixed */}
       <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-900">Welcome, {firstName}</span>
-        <button onClick={() => setSidebarOpen(true)} aria-label="Menu">
+        <button onClick={() => setSidebarOpen(true)} aria-label={`Menu${unreadCount > 0 ? `, ${unreadCount} unread notifications` : ''}`} className="relative">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
           </svg>
+          {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-600 border-2 border-white" />}
         </button>
       </div>
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} unreadCount={unreadCount} />
 
       {/* SCROLLABLE CONTENT */}
       <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 py-3">
