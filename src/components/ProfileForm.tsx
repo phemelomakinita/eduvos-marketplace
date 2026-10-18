@@ -14,6 +14,7 @@ export default function ProfileForm({
   initialCampus,
   initialAvatarUrl,
   initialAllowMessages,
+  initialPayshap,
 }: {
   userId: string
   email: string
@@ -21,9 +22,11 @@ export default function ProfileForm({
   initialCampus: string
   initialAvatarUrl: string | null
   initialAllowMessages: boolean
+  initialPayshap: string
 }) {
   const [campus, setCampus] = useState(initialCampus)
   const [allowMessages, setAllowMessages] = useState(initialAllowMessages)
+  const [payshap, setPayshap] = useState(initialPayshap)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -35,6 +38,14 @@ export default function ProfileForm({
     const file = event.target.files?.[0]
     if (!file) return
     setSaved(false)
+
+    let normalise = payshap.replace(/\D/g, '')
+    if (normalise.startsWith('27') && normalise.length === 11) normalise = `0${normalise.slice(2)}`
+    if (normalise !== '' && !/^0\d{9}$/.test(normalise)) {
+      setError('Enter a valid 10-digit cellphone number, for example 071 234 5678.')
+      setLoading(false)
+      return
+    }
     if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
       setError('Please choose an image under 5 MB.')
       setPhotoFile(null)
@@ -84,6 +95,19 @@ export default function ProfileForm({
       setError(updateError.message)
       setLoading(false)
       return
+    }
+
+    const initialNormalise = initialPayshap.replace(/\D/g, '')
+    if (normalise !== initialNormalise) {
+      const { error: payoutError } = normalise === ''
+        ? await supabase.from('payout_details').delete().eq('user_id', userId)
+        : await supabase.from('payout_details').upsert({ user_id: userId, payshap_number: normalise, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+      if (payoutError) {
+        setError(payoutError.message)
+        setLoading(false)
+        return
+      }
+      setPayshap(normalise)
     }
 
     setSaved(true)
@@ -150,6 +174,13 @@ export default function ProfileForm({
               <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${allowMessages ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
+        </div>
+
+        <div className="pt-3 mt-1 border-t border-gray-100 mb-4">
+          <p className="text-sm font-semibold text-gray-900 mb-2">Get paid</p>
+          <label className="block text-xs text-gray-600 mb-1" htmlFor="payshap">PayShap number</label>
+          <input id="payshap" type="tel" inputMode="numeric" value={payshap} onChange={(event) => { setPayshap(event.target.value); setSaved(false) }} placeholder="071 234 5678" className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white" />
+          <p className="text-[10px] text-gray-500 -mt-2 mb-4 leading-snug">The cellphone number linked to your bank account (your ShapID). Buyers only see it after you accept their order. Needed to receive orders.</p>
         </div>
 
         <div className="flex items-center gap-2 border border-dashed border-gray-300 rounded-xl px-3 py-2 mb-4">

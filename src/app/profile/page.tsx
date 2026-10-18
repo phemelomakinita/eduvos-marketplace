@@ -15,6 +15,8 @@ export default async function ProfilePage() {
     .eq('id', user.id)
     .single()
 
+  const { data: payout } = await supabase.from('payout_details').select('payshap_number').eq('user_id', user.id).maybeSingle()
+
   if (!profile) redirect('/feed')
 
   return (
@@ -25,6 +27,7 @@ export default async function ProfilePage() {
       initialCampus={profile.campus ?? ''}
       initialAvatarUrl={profile.avatar_url}
       initialAllowMessages={profile.allow_messages}
+      initialPayshap={payout?.payshap_number ?? ''}
     />
   )
 }

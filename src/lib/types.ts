@@ -92,3 +92,14 @@ export type EduchatMessage = {
   created_at: string
   profiles: { full_name: string | null; campus: string | null; avatar_url: string | null } | null
 }
+
+export type Order = {
+  id: string; code: string; listing_id: string | null; listing_title: string
+  listing_photo_url: string | null; item_price: number; buyer_id: string; seller_id: string
+  business_id: string | null; business_name: string | null
+  delivery_method: 'campus' | 'paxi'; paxi_point: string | null; delivery_fee: number; total: number
+  status: 'requested' | 'accepted' | 'paid' | 'confirmed' | 'sent' | 'completed' | 'declined' | 'cancelled'
+  paxi_tracking: string | null; created_at: string; updated_at: string
+  accepted_at: string | null; paid_at: string | null; confirmed_at: string | null
+  sent_at: string | null; completed_at: string | null
+}
