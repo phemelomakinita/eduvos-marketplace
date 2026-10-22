@@ -12,7 +12,7 @@ export default async function FeedPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, is_admin')
     .eq('id', user.id)
     .single()
 
@@ -31,5 +31,13 @@ export default async function FeedPage() {
   const { count: unreadCount } = await supabase.from('notifications')
     .select('id', { count: 'exact', head: true }).is('read_at', null)
 
-  return <FeedView firstName={firstName} listings={visible} userId={user.id} unreadCount={unreadCount ?? 0} />
+  return (
+    <FeedView
+      firstName={firstName}
+      listings={visible}
+      userId={user.id}
+      unreadCount={unreadCount ?? 0}
+      isAdmin={!!profile?.is_admin}
+    />
+  )
 }

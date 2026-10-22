@@ -1,11 +1,33 @@
-import BackButton from '@/components/BackButton'
+import { notFound, redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import ReportForm from '@/components/ReportForm'
 
-export default function ReportStorePage() {
+export const dynamic = 'force-dynamic'
+
+export default async function ReportStorePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: business, error } = await supabase
+    .from('businesses')
+    .select('name, owner_id')
+    .eq('id', id)
+    .single()
+
+  if (error?.code === 'PGRST116') notFound()
+  if (error) throw new Error(error.message)
+  if (!business) notFound()
+  if (business.owner_id === user.id) redirect(`/store/${id}`)
+
   return (
-    <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton />
-      <h1 className="text-base font-semibold text-gray-900 mb-2">Report store</h1>
-      <p className="text-xs text-gray-400">Reporting is coming soon.</p>
-    </div>
+    <ReportForm
+      kind="store"
+      targetId={id}
+      heading="Report store"
+      subject={business.name}
+      backHref={`/store/${id}`}
+    />
   )
 }

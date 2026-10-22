@@ -39,6 +39,13 @@ export type Listing = {
   photo_url: string | null
   campus: string | null
   created_at: string
+  businesses?: {
+    is_verified?: boolean
+    is_paused?: boolean
+  } | {
+    is_verified?: boolean
+    is_paused?: boolean
+  }[] | null
 }
 
 export type Message = {

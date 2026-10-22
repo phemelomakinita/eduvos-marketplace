@@ -20,6 +20,10 @@ export default function MyStoreView({
 }) {
   const [items, setItems] = useState(listings)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [hubStudentNumber, setHubStudentNumber] = useState('')
+  const [verificationNote, setVerificationNote] = useState('')
+  const [verificationSubmitting, setVerificationSubmitting] = useState(false)
+  const [verificationError, setVerificationError] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -31,6 +35,35 @@ export default function MyStoreView({
       setItems(items.filter((item) => item.id !== id))
       router.refresh()
     }
+  }
+
+  async function requestVerification() {
+    if (!business) return
+
+    setVerificationError('')
+    setVerificationSubmitting(true)
+
+    const trimmedNumber = hubStudentNumber.trim()
+    const trimmedNote = verificationNote.trim()
+
+    const { error } = await supabase
+      .from('businesses')
+      .update({
+        verification_status: 'pending',
+        verification_requested_at: new Date().toISOString(),
+        hub_student_number: trimmedNumber || null,
+        verification_note: trimmedNote || null,
+      })
+      .eq('id', business.id)
+
+    setVerificationSubmitting(false)
+
+    if (error) {
+      setVerificationError(error.message)
+      return
+    }
+
+    router.refresh()
   }
 
   if (!business) {
@@ -62,6 +95,56 @@ export default function MyStoreView({
           <button type="button" onClick={resumeStore} className="text-xs font-semibold text-amber-800 border border-amber-300 rounded-md px-3 py-1.5 flex-shrink-0">Resume</button>
         </div>
       )}
+
+      {!business.is_verified && business.verification_status !== 'approved' && (
+        <div className="border border-gray-200 rounded-xl p-3 mb-4">
+          <p className="text-sm font-semibold text-gray-900 mb-2">
+            {business.verification_status === 'pending' ? 'Verification request pending' : 'Request Hub verification'}
+          </p>
+
+          {business.verification_status === 'rejected' && business.verification_rejection_reason && (
+            <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-2 py-1.5 mb-2">
+              {business.verification_rejection_reason}
+            </p>
+          )}
+
+          {business.verification_status === 'pending' ? (
+            <p className="text-xs text-amber-700">Your request is under review.</p>
+          ) : (
+            <>
+              <label className="block text-[11px] text-gray-600 mb-1">Hub student number</label>
+              <input
+                type="text"
+                value={hubStudentNumber}
+                onChange={(event) => setHubStudentNumber(event.target.value)}
+                placeholder="e.g. 201912345"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
+              />
+
+              <label className="block text-[11px] text-gray-600 mb-1">Notes (optional)</label>
+              <textarea
+                rows={2}
+                value={verificationNote}
+                onChange={(event) => setVerificationNote(event.target.value)}
+                placeholder="Tell the admin about your business"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white resize-none"
+              />
+
+              {verificationError && <p className="text-xs text-red-600 mb-3">{verificationError}</p>}
+
+              <button
+                type="button"
+                onClick={requestVerification}
+                disabled={verificationSubmitting || hubStudentNumber.trim().length < 3}
+                className="w-full bg-blue-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50"
+              >
+                {verificationSubmitting ? 'Sending...' : 'Submit verification request'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="flex gap-2 mb-4">
         <Link href="/edit-store" className="flex-1 text-center border border-gray-300 text-gray-800 rounded-md py-2 text-xs font-medium">Edit store</Link>
         <Link href={`/store/${business.id}`} className="flex-1 text-center border border-gray-300 text-gray-800 rounded-md py-2 text-xs font-medium">View public store</Link>

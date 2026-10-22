@@ -1,11 +1,33 @@
-import BackButton from '@/components/BackButton'
+import { notFound, redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import ReportForm from '@/components/ReportForm'
 
-export default function ReportUserPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function ReportUserPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+  if (id === user.id) redirect('/profile')
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', id)
+    .single()
+
+  if (error?.code === 'PGRST116') notFound()
+  if (error) throw new Error(error.message)
+  if (!profile) notFound()
+
   return (
-    <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton history label="Back" />
-      <h1 className="text-base font-semibold text-gray-900 mb-2">Report user</h1>
-      <p className="text-xs text-gray-400">Reporting is coming soon.</p>
-    </div>
+    <ReportForm
+      kind="user"
+      targetId={id}
+      heading="Report user"
+      subject={profile.full_name ?? 'Student'}
+      backHref={`/profile/${id}`}
+    />
   )
 }

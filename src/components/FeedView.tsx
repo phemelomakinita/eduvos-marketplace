@@ -17,11 +17,13 @@ export default function FeedView({
   listings,
   userId,
   unreadCount,
+  isAdmin = false,
 }: {
   firstName: string
   listings: FeedListing[]
   userId: string
   unreadCount: number
+  isAdmin?: boolean
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>('All')
@@ -47,12 +49,28 @@ export default function FeedView({
       ? listings
       : listings.filter((l) => l.category === activeCategory)
 
+  const getBusinessVerified = (item: Listing) => {
+    const source = item.businesses
+    if (!source) return false
+    if (Array.isArray(source)) return Boolean(source[0]?.is_verified)
+    return Boolean(source.is_verified)
+  }
+
   return (
     <div className="h-dvh w-full max-w-full overflow-x-hidden flex flex-col bg-white">
 
       {/* TOP BAR — fixed */}
-      <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <div className="relative flex-shrink-0 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-900">Welcome, {firstName}</span>
+        {isAdmin && (
+          <Link href="/admin" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 border border-blue-700 text-blue-700 rounded-full px-3 py-1 text-[11px] font-semibold">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" />
+              <path d="M15 19l2 2l4 -4" />
+            </svg>
+            Admin
+          </Link>
+        )}
         <button onClick={() => setSidebarOpen(true)} aria-label={`Menu${unreadCount > 0 ? `, ${unreadCount} unread notifications` : ''}`} className="relative">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
@@ -96,46 +114,57 @@ export default function FeedView({
           ))}
         </div>
 
-                <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
   {filtered.length === 0 && (
     <p className="col-span-2 text-xs text-gray-400 text-center py-8">No listings yet in this category.</p>
   )}
-  {filtered.map((item) => (
-    <Link
-      key={item.id}
-      href={`/listing/${item.id}`}
-      className="block min-w-0 border border-gray-200 rounded-xl p-2"
-    >
-      <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
-        {item.photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.photo_url} alt={item.title} className="w-full h-full object-contain" />
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
-            <rect x="3" y="5" width="18" height="14" rx="2" />
-            <circle cx="8.5" cy="10" r="1.5" />
-            <path d="M21 15l-5-5L5 19" />
-          </svg>
-        )}
-        {item.businesses?.is_verified && (
-          <span
-            aria-label="Hub Verified"
-            className="absolute top-1.5 left-1.5 flex items-center gap-0.5 bg-white/95 text-blue-700 text-[9px] font-semibold rounded-full pl-1 pr-1.5 py-0.5 shadow-sm"
-          >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12l5 5l10 -10" />
+  {filtered.map((item) => {
+    const isVerified = getBusinessVerified(item)
+
+    return (
+      <Link
+        key={item.id}
+        href={`/listing/${item.id}`}
+        className="block min-w-0 border border-gray-200 rounded-xl p-2"
+      >
+        <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
+          {item.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.photo_url} alt={item.title} className="w-full h-full object-contain" />
+          ) : (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <circle cx="8.5" cy="10" r="1.5" />
+              <path d="M21 15l-5-5L5 19" />
             </svg>
-            Verified
-          </span>
-        )}
-      </div>
-      <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
-      <p className="text-xs text-gray-500 mt-0.5 truncate">
-        {item.price ? `R${item.price}` : item.category} · {item.campus}
-      </p>
-    </Link>
-  ))}
+          )}
+          {isVerified && (
+            <span
+              aria-label="Hub Verified"
+              className="absolute top-1.5 left-1.5 flex items-center gap-0.5 bg-white/95 text-blue-700 text-[9px] font-semibold rounded-full pl-1 pr-1.5 py-0.5 shadow-sm"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12l5 5l10 -10" />
+              </svg>
+              Verified
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
+          {isVerified && (
+            <span className="inline-flex items-center rounded-full border border-gray-300 bg-gray-50 px-1.5 py-0.5 text-[9px] font-medium text-gray-700">
+              Verified
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mt-0.5 truncate">
+          {item.price ? `R${item.price}` : item.category} · {item.campus}
+        </p>
+      </Link>
+    )
+  })}
 </div>
 
       </div>
