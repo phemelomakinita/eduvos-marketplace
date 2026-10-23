@@ -12,10 +12,8 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+        setAll() {
+          // Session cookies are refreshed in proxy.ts, not during Server Component rendering.
         },
       },
     }
