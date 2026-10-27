@@ -86,7 +86,7 @@ export default function VerificationQueue({
         </button>
       </div>
 
-      {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+      {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
 
       {tab === 'pending' ? (
         pending.length === 0 ? (
@@ -139,7 +139,7 @@ export default function VerificationQueue({
                     setError('')
                   }}
                   disabled={busyId !== null}
-                  className="flex-1 rounded-md py-2 text-xs font-medium border border-red-300 text-red-700 disabled:opacity-50"
+                  className="flex-1 rounded-md py-2 text-xs font-medium border border-blue-300 text-blue-700 disabled:opacity-50"
                 >
                   Reject
                 </button>
@@ -157,7 +157,7 @@ export default function VerificationQueue({
                     type="button"
                     onClick={() => reviewBusiness(business.id, false, reason.trim())}
                     disabled={busyId !== null || reason.trim().length < 3}
-                    className="w-full rounded-md py-2 text-xs font-medium bg-red-600 text-white disabled:opacity-50"
+                    className="w-full rounded-md py-2 text-xs font-medium bg-blue-600 text-white disabled:opacity-50"
                   >
                     Confirm rejection
                   </button>
@@ -173,7 +173,7 @@ export default function VerificationQueue({
           <article key={business.id} className="border border-gray-200 rounded-xl p-3 mb-3">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-gray-900">{business.name}</p>
-              <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${business.verification_status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded ${business.verification_status === 'approved' ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-700'}`}>
                 {business.verification_status === 'approved' ? 'Verified' : 'Not approved'}
               </span>
             </div>

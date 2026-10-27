@@ -107,7 +107,7 @@ export default function ShareStoreCard({ business }: { business: Business }) {
           Download QR
         </button>
       </div>
-      {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+      {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
       <p className="text-[10px] text-gray-500 text-center">New students who scan this are asked to sign up first, then land on your store.</p>
     </div>
   )

@@ -104,7 +104,7 @@ export default function ReportsQueue({
         </button>
       </div>
 
-      {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+      {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
 
       {visibleReports.length === 0 ? (
         <p className="text-xs text-gray-400 text-center py-12">
@@ -183,7 +183,7 @@ export default function ReportsQueue({
                         type="button"
                         onClick={() => resolveReport(report, 'remove_listing')}
                         disabled={busyId !== null}
-                        className="flex-1 rounded-md py-2 text-xs font-medium bg-red-600 text-white disabled:opacity-50"
+                        className="flex-1 rounded-md py-2 text-xs font-medium bg-blue-600 text-white disabled:opacity-50"
                       >
                         Remove listing
                       </button>
@@ -193,7 +193,7 @@ export default function ReportsQueue({
                         type="button"
                         onClick={() => resolveReport(report, 'delete_message')}
                         disabled={busyId !== null}
-                        className="flex-1 rounded-md py-2 text-xs font-medium bg-red-600 text-white disabled:opacity-50"
+                        className="flex-1 rounded-md py-2 text-xs font-medium bg-blue-600 text-white disabled:opacity-50"
                       >
                         Delete message
                       </button>

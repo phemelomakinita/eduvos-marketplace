@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import BackButton from '@/components/BackButton'
 import StoreHeader from '@/components/StoreHeader'
+import ListingCard from '@/components/ListingCard'
+import MarketplaceNavigation from '@/components/MarketplaceNavigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,44 +28,38 @@ export default async function StorePage({ params }: { params: Promise<{ id: stri
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton history label="Back" />
-      <StoreHeader business={business} campus={business.profiles?.campus ?? null} />
-      {business.is_paused ? (
-        <div className="border border-gray-200 bg-gray-50 rounded-xl p-4 text-center mt-4 mb-4">
-          <p className="text-sm font-semibold text-gray-900">This store is temporarily closed</p>
-          <p className="text-xs text-gray-500 mt-1">Check back soon.</p>
-        </div>
-      ) : (
-        <>
-          <p className="text-sm font-semibold text-gray-900 mt-3 mb-2 pt-3 border-t border-gray-100">Listings ({listings?.length ?? 0})</p>
-          {!listings?.length ? (
-            <p className="text-xs text-gray-400 text-center py-8">No listings yet.</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {listings.map((item) => (
-                <Link key={item.id} href={`/listing/${item.id}`} className="block min-w-0 border border-gray-200 rounded-xl p-2">
-                  <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
-                    {item.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.photo_url} alt={item.title} className="w-full h-full object-contain" />
-                    ) : (
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
-                        <rect x="3" y="5" width="18" height="14" rx="2" />
-                        <circle cx="8.5" cy="10" r="1.5" />
-                        <path d="M21 15l-5-5L5 19" />
-                      </svg>
-                    )}
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">{item.price ? `R${item.price}` : item.category}</p>
-                </Link>
-              ))}
+    <div className="min-h-dvh bg-white px-4 pb-28 pt-4 sm:px-6">
+      <main className="mx-auto max-w-5xl">
+        <BackButton history label="Back" />
+        <section className="mt-4 rounded-xl border border-blue-100 bg-white p-5 sm:p-7">
+          <StoreHeader business={business} campus={business.profiles?.campus ?? null} />
+        </section>
+        {business.is_paused ? (
+          <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-5">
+            <p className="text-sm font-semibold text-[#102a56]">This store is temporarily closed</p>
+            <p className="mt-1 text-sm text-slate-600">Check back soon for new listings.</p>
+          </div>
+        ) : (
+          <section className="mt-7">
+            <div className="mb-4 flex items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight text-slate-900">Store listings</h2>
+                <p className="mt-1 text-sm text-slate-500">Browse products from this campus business.</p>
+              </div>
+              <span className="shrink-0 text-xs font-medium text-slate-500">{listings?.length ?? 0} items</span>
             </div>
-          )}
-        </>
-      )}
-      <Link href={`/report-store/${id}`} className="block text-center text-xs text-gray-500 py-3 border-t border-gray-100">🚩 Report store</Link>
+            {!listings?.length ? (
+              <p className="rounded-xl border border-dashed border-blue-200 bg-white px-4 py-10 text-center text-sm text-slate-500">No listings yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                {listings.map((item) => <ListingCard key={item.id} listing={{ ...item, businesses: { name: business.name, is_verified: business.is_verified } }} />)}
+              </div>
+            )}
+          </section>
+        )}
+        <Link href={`/report-store/${id}`} className="mt-7 block border-t border-blue-100 py-4 text-center text-xs font-medium text-slate-500 hover:text-blue-800">Report this store</Link>
+      </main>
+      <MarketplaceNavigation />
     </div>
   )
 }

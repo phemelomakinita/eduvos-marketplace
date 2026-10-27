@@ -4,7 +4,8 @@ import FeedView from '@/components/FeedView'
 
 export const dynamic = 'force-dynamic'
 
-export default async function FeedPage() {
+export default async function FeedPage({ searchParams }: { searchParams: Promise<{ q?: string; category?: string }> }) {
+  const params = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -21,7 +22,7 @@ export default async function FeedPage() {
   // real listings, newest first
   const { data: listings } = await supabase
     .from('listings')
-    .select('*, businesses(is_paused, is_verified)')
+    .select('*, businesses(is_paused, is_verified, name), profiles(full_name)')
     .order('created_at', { ascending: false })
 
   const visible = (listings || [])
@@ -38,6 +39,8 @@ export default async function FeedPage() {
       userId={user.id}
       unreadCount={unreadCount ?? 0}
       isAdmin={!!profile?.is_admin}
+      initialSearch={params.q ?? ''}
+      initialCategory={params.category ?? 'All'}
     />
   )
 }

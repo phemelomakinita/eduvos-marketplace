@@ -30,7 +30,7 @@ export default async function AdminPage() {
       <p className="text-xs text-gray-500 mb-4">Signed in as {name}</p>
 
       {countErrors.map((message, index) => (
-        <p key={`${index}-${message}`} className="text-xs text-red-600 mb-3">{message}</p>
+        <p key={`${index}-${message}`} className="text-xs text-blue-600 mb-3">{message}</p>
       ))}
 
       <Link href="/admin/reports" className="flex items-center justify-between border border-gray-200 rounded-xl p-4 mb-3">
@@ -38,7 +38,7 @@ export default async function AdminPage() {
           <p className="text-sm font-semibold text-gray-900">Reports</p>
           <p className="text-[11px] text-gray-500">Listings, stores, users and messages</p>
         </div>
-        <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${pendingReports !== null && pendingReports > 0 ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+        <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${pendingReports !== null && pendingReports > 0 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
           {pendingReports ?? '—'}
         </span>
       </Link>
@@ -48,7 +48,7 @@ export default async function AdminPage() {
           <p className="text-sm font-semibold text-gray-900">Hub verification</p>
           <p className="text-[11px] text-gray-500">Requests from student businesses</p>
         </div>
-        <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${pendingVerifications !== null && pendingVerifications > 0 ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+        <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${pendingVerifications !== null && pendingVerifications > 0 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
           {pendingVerifications ?? '—'}
         </span>
       </Link>

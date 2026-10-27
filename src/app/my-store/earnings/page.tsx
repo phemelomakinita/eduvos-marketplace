@@ -45,7 +45,7 @@ export default async function EarningsPage() {
       </div>
       <div className="flex gap-2 mb-2">
         <div className="flex-1 border border-gray-200 rounded-xl p-3"><p className="text-[10px] text-gray-500">In progress</p><p className="text-sm font-semibold text-gray-900 mt-0.5">{formatRand(openValue)}</p><p className="text-[10px] text-gray-500">{openOrders.length} open</p></div>
-        <div className="flex-1 border border-gray-200 rounded-xl p-3"><p className="text-[10px] text-gray-500">Needs your action</p><p className={`text-sm font-semibold mt-0.5 ${needsAction > 0 ? 'text-amber-700' : 'text-gray-900'}`}>{needsAction}</p><p className="text-[10px] text-gray-500">{needsAction === 1 ? 'order waiting for you' : 'orders waiting for you'}</p></div>
+        <div className="flex-1 border border-gray-200 rounded-xl p-3"><p className="text-[10px] text-gray-500">Needs your action</p><p className={`text-sm font-semibold mt-0.5 ${needsAction > 0 ? 'text-blue-700' : 'text-gray-900'}`}>{needsAction}</p><p className="text-[10px] text-gray-500">{needsAction === 1 ? 'order waiting for you' : 'orders waiting for you'}</p></div>
       </div>
       <p className="text-[10px] text-gray-500 mb-5">Delivery fees you collect for PAXI aren&apos;t counted here.</p>
       <p className="text-sm font-semibold text-gray-900 mb-2">Recent sales</p>

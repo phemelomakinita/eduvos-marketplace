@@ -42,7 +42,7 @@ export default function MyListingsView({ listings, hasStore }: { listings: Listi
           </svg>
         </Link>
       )}
-      {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+      {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
       {items.length === 0 ? (
         <div className="flex flex-col items-center text-center pt-20 gap-3">
           <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
@@ -83,7 +83,7 @@ export default function MyListingsView({ listings, hasStore }: { listings: Listi
                     <path d="M13.5 6.5l4 4" />
                   </svg>
                 </Link>
-                <button type="button" onClick={() => handleDelete(item.id)} aria-label="Delete listing" className="text-red-600 p-1">
+                <button type="button" onClick={() => handleDelete(item.id)} aria-label="Delete listing" className="text-blue-600 p-1">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 7l16 0" />
                     <path d="M10 11l0 6" />

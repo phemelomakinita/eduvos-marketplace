@@ -89,6 +89,7 @@ export type Event = {
   event_date: string | null
   campus: string | null
   poster_url: string | null
+  entry_fee: number | null
   created_at: string
 }
 

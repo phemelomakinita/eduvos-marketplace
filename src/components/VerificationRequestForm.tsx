@@ -61,9 +61,9 @@ export default function VerificationRequestForm({ business }: { business: Busine
       ) : (
         <>
           {business.verification_status === 'rejected' && (
-            <div className="border border-red-200 bg-red-50 rounded-xl px-3 py-2 mb-4">
-              <p className="text-xs font-semibold text-red-700">Your last request was not approved</p>
-              <p className="text-xs text-red-600 mt-0.5">{business.verification_rejection_reason || 'No reason given.'} You can apply again below.</p>
+            <div className="border border-blue-200 bg-blue-50 rounded-xl px-3 py-2 mb-4">
+              <p className="text-xs font-semibold text-blue-700">Your last request was not approved</p>
+              <p className="text-xs text-blue-600 mt-0.5">{business.verification_rejection_reason || 'No reason given.'} You can apply again below.</p>
             </div>
           )}
           <p className="text-sm font-semibold text-gray-900 mb-2">What you get</p>
@@ -83,7 +83,7 @@ export default function VerificationRequestForm({ business }: { business: Busine
             <input required minLength={3} maxLength={30} value={studentNumber} onChange={(event) => setStudentNumber(event.target.value)} placeholder="e.g. 2026123456" className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white" />
             <label className="block text-xs text-gray-600 mb-1">Tell us about your business (optional)</label>
             <textarea rows={3} maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} placeholder="What do you sell and how long have you been running?" className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white resize-none" />
-            {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+            {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
             <button type="submit" disabled={loading} className="w-full bg-blue-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50">{loading ? 'Submitting...' : 'Submit request'}</button>
             <p className="text-[10px] text-gray-500 text-center mt-2">An admin reviews your request. You&apos;ll see Pending, Verified or Not approved here.</p>
           </form>

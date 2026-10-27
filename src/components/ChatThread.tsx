@@ -110,10 +110,21 @@ export default function ChatThread({ conversationId, userId, other, listing, ini
         </Link>
       </div>
       {listingCard}
-      <p className="flex-shrink-0 text-[10px] text-gray-500 text-center mt-2">🔒 Keep chat and payment inside the app</p>
+      <p className="mt-2 flex-shrink-0 text-center text-[10px] text-gray-500">
+        <svg className="mr-1 inline-block h-3 w-3 align-[-2px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="4" y="10" width="16" height="11" rx="2" />
+          <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" />
+        </svg>
+        Keep chat and payment inside the app
+      </p>
       <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2">
         {messages.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-10">Say hello 👋</p>
+          <div className="py-10 text-center">
+            <svg className="mx-auto h-7 w-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z" />
+            </svg>
+            <p className="mt-2 text-xs text-gray-500">Say hello to start the conversation.</p>
+          </div>
         ) : messages.map((message, index) => {
           const mine = message.sender_id === userId
           const firstOfDay = index === 0 || dayLabel(messages[index - 1].created_at) !== dayLabel(message.created_at)
@@ -129,7 +140,7 @@ export default function ChatThread({ conversationId, userId, other, listing, ini
         })}
         <div ref={bottomRef} />
       </div>
-      {error && <p className="flex-shrink-0 text-xs text-red-600 px-4 pb-1">{error}</p>}
+      {error && <p className="flex-shrink-0 text-xs text-blue-600 px-4 pb-1">{error}</p>}
       <form onSubmit={handleSend} className="flex-shrink-0 border-t border-gray-200 px-3 py-2 flex items-center gap-2">
         <input value={text} onChange={(event) => setText(event.target.value)} maxLength={1000} placeholder="Type a message..." className="flex-1 min-w-0 border border-gray-300 rounded-full px-4 py-2 text-base text-gray-900 bg-white" />
         <button type="submit" disabled={sending || !text.trim()} aria-label="Send" className="w-10 h-10 rounded-full bg-blue-700 text-white flex items-center justify-center disabled:opacity-50 flex-shrink-0">

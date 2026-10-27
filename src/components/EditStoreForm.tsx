@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/categories'
+import { getCategoryToneClasses } from '@/lib/categories'
+import CategoryIcon from '@/components/CategoryIcon'
 import BackButton from '@/components/BackButton'
 import type { Business } from '@/lib/types'
 
@@ -37,6 +40,14 @@ export default function EditStoreForm({ business }: { business: Business }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (!name.trim()) {
+      setError('Enter a store name.')
+      return
+    }
+    if (!CATEGORIES.some((item) => item.value === category)) {
+      setError('Select a valid category.')
+      return
+    }
     setLoading(true)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -59,20 +70,23 @@ export default function EditStoreForm({ business }: { business: Business }) {
       newLogoUrl = supabase.storage.from('store-logos').getPublicUrl(path).data.publicUrl
     }
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from('businesses')
       .update({
-        name,
+        name: name.trim(),
         category,
-        description: description || null,
-        contact_number: contactNumber || null,
-        email: email || null,
+        description: description.trim() || null,
+        contact_number: contactNumber.trim() || null,
+        email: email.trim() || null,
         ...(newLogoUrl ? { logo_url: newLogoUrl } : {}),
       })
       .eq('id', business.id)
+      .eq('owner_id', user.id)
+      .select('id')
+      .maybeSingle()
 
-    if (updateError) {
-      setError(updateError.message)
+    if (updateError || !data) {
+      setError(updateError?.message ?? 'Your store could not be updated. Please confirm you still own this store.')
       setLoading(false)
       return
     }
@@ -85,6 +99,9 @@ export default function EditStoreForm({ business }: { business: Business }) {
     <div className="min-h-screen bg-white px-4 py-4">
       <BackButton href="/my-store" label="Back to My Store" />
       <h1 className="text-base font-semibold text-gray-900 mb-3">Edit store</h1>
+      <Link href={`/store/${business.id}`} target="_blank" rel="noopener noreferrer" className="mb-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-blue-200 px-3 text-xs font-semibold text-blue-800 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+        Preview public store before saving
+      </Link>
       <form onSubmit={handleSubmit}>
         <label className="flex flex-col items-center mb-4 cursor-pointer">
           <div className="relative w-16 h-16">
@@ -93,7 +110,7 @@ export default function EditStoreForm({ business }: { business: Business }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={logoPreview || business.logo_url || ''} alt={business.name} className="w-full h-full object-cover" />
               ) : (
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-brand" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 21l18 0" />
                   <path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1l-2 -4h-14l-2 4" />
                   <path d="M5 21l0 -10.15" />
@@ -118,8 +135,14 @@ export default function EditStoreForm({ business }: { business: Business }) {
 
         <label className="block text-xs text-gray-600 mb-1">Category</label>
         <select required value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white">
-          {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.emoji} {c.value}</option>)}
+          {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.value}</option>)}
         </select>
+        {category && (
+          <span className={`mb-3 inline-flex items-center gap-2 border px-2.5 py-1.5 text-xs font-medium ${getCategoryToneClasses(CATEGORIES.find((item) => item.value === category)?.tone ?? 'slate').soft}`}>
+            <CategoryIcon category={category} className="h-4 w-4" />
+            {category}
+          </span>
+        )}
 
         <label className="block text-xs text-gray-600 mb-1">Description</label>
         <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white resize-none" />
@@ -131,7 +154,7 @@ export default function EditStoreForm({ business }: { business: Business }) {
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white" />
         <p className="text-[11px] text-gray-500 mb-4">Both contact fields are optional. Leave them blank to keep all contact inside in-app chat.</p>
 
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
         <button type="submit" disabled={loading} className="w-full bg-blue-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50">
           {loading ? 'Saving...' : 'Save changes'}
         </button>

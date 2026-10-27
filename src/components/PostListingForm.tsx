@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { CATEGORIES } from '@/lib/categories'
+import { CATEGORIES, getCategoryToneClasses } from '@/lib/categories'
+import CategoryIcon from '@/components/CategoryIcon'
 import BackButton from '@/components/BackButton'
+import MarketplaceNavigation from '@/components/MarketplaceNavigation'
 
 export default function PostListingForm({
   campus,
@@ -29,9 +31,21 @@ export default function PostListingForm({
   const router = useRouter()
   const supabase = createClient()
 
+  useEffect(() => () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+  }, [photoPreview])
+
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.type && !file.type.startsWith('image/')) {
+      setError('Choose an image file for your listing photo.')
+      e.target.value = ''
+      setPhotoFile(null)
+      setPhotoPreview(null)
+      return
+    }
+    setError('')
     setPhotoFile(file)
     setPhotoPreview(URL.createObjectURL(file)) // local preview before upload
   }
@@ -39,6 +53,10 @@ export default function PostListingForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (price && (!Number.isFinite(Number(price)) || Number(price) < 0)) {
+      setError('Enter a valid price of zero or more.')
+      return
+    }
     setLoading(true)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -94,102 +112,151 @@ export default function PostListingForm({
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 py-4">
-      <BackButton />
-      <h1 className="text-base font-semibold text-gray-900 mb-4">New Listing</h1>
+    <div className="min-h-dvh bg-white px-4 pb-28 pt-4 sm:px-6">
+      <main className="mx-auto max-w-3xl">
+        <BackButton />
+        <div className="mb-5 mt-4">
+          <p className="text-sm font-medium text-blue-700">Sell on campus</p>
+          <h1 className="mt-1 text-[28px] font-bold tracking-tight text-slate-950 sm:text-[32px]">Create a listing</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">Add the essentials and your item will be ready for your campus community.</p>
+        </div>
 
-      {/* real photo upload, with live preview */}
-      <label className="block w-full h-32 border border-dashed border-gray-300 rounded-lg mb-3 flex flex-col items-center justify-center text-gray-400 cursor-pointer overflow-hidden">
-        {photoPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-        ) : (
-          <>
-            <span className="text-xl">📷</span>
-            <span className="text-[10px] mt-1">Add a photo</span>
-          </>
-        )}
-        <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-      </label>
+        <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-blue-100 bg-white p-4 sm:p-7">
+          <label htmlFor="listing-photo" className={`group relative flex aspect-[16/9] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed transition-colors duration-150 ${photoPreview ? 'border-blue-100 bg-slate-50' : 'border-blue-200 bg-blue-50/60 hover:bg-blue-50'}`}>
+            {photoPreview ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photoPreview} alt="Listing photo preview" className="h-full w-full object-contain" />
+                <span className="absolute bottom-3 rounded-md bg-slate-950/75 px-3 py-1.5 text-xs font-medium text-white">Tap to change photo</span>
+              </>
+            ) : (
+              <>
+                <span className="mb-2 flex h-12 w-12 items-center justify-center text-2xl text-blue-700" aria-hidden="true">＋</span>
+                <span className="text-sm font-semibold text-slate-800">Add a product photo</span>
+                <span className="mt-1 text-xs text-slate-500">A clear photo helps people see what you&apos;re selling.</span>
+              </>
+            )}
+            <input id="listing-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="sr-only" />
+          </label>
 
-      <form onSubmit={handleSubmit}>
-        <label className="block text-xs text-gray-600 mb-1">Title</label>
-        <input
-          type="text"
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Intro to Programming textbook"
-          className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
-        />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label htmlFor="listing-title" className="block text-sm font-semibold text-slate-800 sm:col-span-2">
+              Listing title <span className="text-blue-600">*</span>
+              <input
+                id="listing-title"
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Intro to Programming textbook"
+                className="mt-2 min-h-11 w-full rounded-lg border border-blue-100 bg-white px-4 text-sm font-normal text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              />
+            </label>
 
-        <label className="block text-xs text-gray-600 mb-1">Category</label>
-        <select
-          required
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
-        >
-          <option value="">Select a category</option>
-          {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.emoji} {c.value}</option>
-          ))}
-        </select>
+            <label htmlFor="listing-category" className="block text-sm font-semibold text-slate-800">
+              Category <span className="text-blue-600">*</span>
+              <select
+                id="listing-category"
+                required
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-normal text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Select a category</option>
+                {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.value}</option>)}
+              </select>
+              {category && (
+                <span className={`mt-2 inline-flex items-center gap-2 border px-2.5 py-1.5 text-xs font-medium ${getCategoryToneClasses(CATEGORIES.find((item) => item.value === category)?.tone ?? 'slate').soft}`}>
+                  <CategoryIcon category={category} className="h-4 w-4" />
+                  {category}
+                </span>
+              )}
+            </label>
 
-        <label className="block text-xs text-gray-600 mb-1">Price (leave blank for POA)</label>
-        <input
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="R"
-          className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
-        />
+            <label htmlFor="listing-price" className="block text-sm font-semibold text-slate-800">
+              Price
+              <span className="mt-2 flex min-h-12 items-center rounded-xl border border-slate-200 bg-white px-4 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
+                <span className="mr-2 text-sm font-medium text-slate-400">R</span>
+                <input
+                  id="listing-price"
+                  type="number"
+                  min="0"
+                  step="any"
+                  inputMode="decimal"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Leave blank for price on request"
+                  className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm font-normal text-slate-900 outline-none placeholder:text-slate-400 focus:ring-0"
+                />
+              </span>
+            </label>
 
-        <label className="block text-xs text-gray-600 mb-1">Description</label>
-        <textarea
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a bit of detail for buyers..."
-          className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white resize-none"
-        />
-
-        {business ? storePaused ? (
-          <div className="border border-amber-200 bg-amber-50 rounded-lg px-3 py-2 mb-4">
-            <p className="text-xs font-semibold text-amber-800">Your store is paused</p>
-            <p className="text-[10px] text-amber-700 mt-0.5">Resume it in <Link href="/my-store" className="underline">My Store</Link> to post as your store. This listing will be posted as you.</p>
+            <label htmlFor="listing-description" className="block text-sm font-semibold text-slate-800 sm:col-span-2">
+              Description
+              <textarea
+                id="listing-description"
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Share the condition, useful details, or how buyers can collect it."
+                className="mt-2 w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal leading-6 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              />
+            </label>
           </div>
-        ) : (
-          <div className="border border-gray-200 rounded-lg px-3 py-2 mb-4 flex items-center justify-between">
+
+          <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4">
+            <svg className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
+              <circle cx="12" cy="10" r="2.5" />
+            </svg>
             <div>
-              <p className="text-xs font-semibold text-gray-900">Post as {business.name}</p>
-              <p className="text-[10px] text-gray-500">Your registered business</p>
+              <p className="text-sm font-semibold text-slate-800">Your campus</p>
+              <p className="mt-0.5 text-sm text-slate-600">{campus || 'Campus not set on your profile'}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setPostAsBusiness(!postAsBusiness)}
-              className={`w-8 h-5 rounded-full relative transition-colors ${postAsBusiness ? 'bg-blue-700' : 'bg-gray-300'}`}
-            >
-              <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${postAsBusiness ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
-            </button>
           </div>
-        ) : (
-          <p className="text-[11px] text-center text-gray-500 mb-4">
-            Don&apos;t have a business yet?{' '}
-            <Link href="/register-business" className="text-blue-700 font-medium">Register one</Link>
-          </p>
-        )}
 
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+          {business ? storePaused ? (
+            <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-[#102a56]">Your store is paused</p>
+              <p className="mt-1 text-sm leading-5 text-slate-700">Resume it in <Link href="/my-store" className="font-semibold underline">My Store</Link> to post as your store. This listing will be posted as you.</p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 p-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Post as {business.name}</p>
+                <p className="mt-0.5 text-xs text-slate-500">Use your registered business identity.</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={postAsBusiness}
+                aria-label={`Post as ${business.name}`}
+                onClick={() => setPostAsBusiness(!postAsBusiness)}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${postAsBusiness ? 'bg-blue-700' : 'bg-slate-300'}`}
+              >
+                <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${postAsBusiness ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          ) : (
+            <p className="text-center text-sm text-slate-500">
+              Selling as a business?{' '}
+              <Link href="/register-business" className="font-semibold text-blue-700 hover:text-blue-900">Register your business</Link>
+            </p>
+          )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50"
-        >
-          {loading ? 'Posting...' : 'Post listing'}
-        </button>
-      </form>
+          {error && <p role="alert" className="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="min-h-12 w-full rounded-xl bg-blue-700 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Publishing listing...' : 'Publish listing'}
+          </button>
+          <p className="text-center text-xs text-slate-500">By publishing, you confirm this listing is accurate and appropriate for the marketplace.</p>
+        </form>
+      </main>
+      <MarketplaceNavigation active="sell" />
     </div>
   )
 }

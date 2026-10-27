@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/categories'
+import { getCategoryToneClasses } from '@/lib/categories'
+import CategoryIcon from '@/components/CategoryIcon'
 import BackButton from '@/components/BackButton'
 import type { Listing } from '@/lib/types'
 
@@ -38,16 +40,29 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    if (!title.trim()) {
+      setError('Enter a listing title.')
+      return
+    }
+    if (!CATEGORIES.some((item) => item.value === category)) {
+      setError('Select a valid category.')
+      return
+    }
+    if (price && (!Number.isFinite(Number(price)) || Number(price) < 0)) {
+      setError('Enter a valid price of zero or more.')
+      return
+    }
     setLoading(true)
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user || user.id !== listing.user_id) {
+      setError(authError?.message ?? 'You must be signed in as the owner of this listing.')
+      setLoading(false)
+      return
+    }
 
     let newPhotoUrl: string | null = null
     if (photoFile) {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setError('You must be logged in.')
-        setLoading(false)
-        return
-      }
       const ext = photoFile.name.split('.').pop() || 'jpg'
       const path = `${user.id}/${Date.now()}.${ext}`
       const { error: uploadError } = await supabase.storage.from('listing-photos').upload(path, photoFile)
@@ -59,19 +74,22 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
       newPhotoUrl = supabase.storage.from('listing-photos').getPublicUrl(path).data.publicUrl
     }
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from('listings')
       .update({
-        title,
+        title: title.trim(),
         category,
         price: price ? parseFloat(price) : null,
-        description: description || null,
+        description: description.trim() || null,
         ...(newPhotoUrl ? { photo_url: newPhotoUrl } : {}),
       })
       .eq('id', listing.id)
+      .eq('user_id', user.id)
+      .select('id')
+      .maybeSingle()
 
-    if (updateError) {
-      setError(updateError.message)
+    if (updateError || !data) {
+      setError(updateError?.message ?? 'This listing could not be updated. It may no longer belong to your account.')
       setLoading(false)
       return
     }
@@ -127,9 +145,15 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
           className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
         >
           {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.emoji} {c.value}</option>
+            <option key={c.value} value={c.value}>{c.value}</option>
           ))}
         </select>
+        {category && (
+          <span className={`mb-3 inline-flex items-center gap-2 border px-2.5 py-1.5 text-xs font-medium ${getCategoryToneClasses(CATEGORIES.find((item) => item.value === category)?.tone ?? 'slate').soft}`}>
+            <CategoryIcon category={category} className="h-4 w-4" />
+            {category}
+          </span>
+        )}
 
         <label className="block text-xs text-gray-600 mb-1">Price (leave blank for POA)</label>
         <input
@@ -147,7 +171,7 @@ export default function EditListingForm({ listing }: { listing: Listing }) {
           className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-sm text-gray-900 bg-white resize-none"
         />
 
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
 
         <button
           type="submit"

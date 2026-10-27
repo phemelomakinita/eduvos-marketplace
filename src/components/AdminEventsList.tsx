@@ -11,6 +11,7 @@ type AdminEvent = {
   event_date: string
   campus: string
   poster_url: string | null
+  entry_fee: number | null
 }
 
 export default function AdminEventsList({ events }: { events: AdminEvent[] }) {
@@ -42,7 +43,7 @@ export default function AdminEventsList({ events }: { events: AdminEvent[] }) {
 
   return (
     <>
-      {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+      {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
       {events.map((event) => (
         <div key={event.id} className="flex items-center gap-3 border border-gray-200 rounded-xl p-2 mb-2">
           <div className="w-14 h-14 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
@@ -56,6 +57,11 @@ export default function AdminEventsList({ events }: { events: AdminEvent[] }) {
             <p className="text-xs text-gray-500">
               {new Date(`${event.event_date}T00:00:00`).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })} · {event.campus}
             </p>
+            {event.entry_fee != null && (
+              <p className="text-xs font-semibold text-blue-700">
+                {Number(event.entry_fee) === 0 ? 'Free entry' : `R${Number(event.entry_fee).toFixed(2)} entry`}
+              </p>
+            )}
             {event.event_date < today && (
               <span className="inline-block bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full mt-1">Past</span>
             )}
@@ -72,7 +78,7 @@ export default function AdminEventsList({ events }: { events: AdminEvent[] }) {
               onClick={() => deleteEvent(event.id)}
               disabled={busyId !== null}
               aria-label="Delete event"
-              className="text-red-600 p-1 disabled:opacity-50"
+              className="text-blue-600 p-1 disabled:opacity-50"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 7l16 0" />

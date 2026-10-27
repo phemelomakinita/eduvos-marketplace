@@ -3,13 +3,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CATEGORIES } from '@/lib/categories'
+import { CATEGORIES, getCategoryToneClasses } from '@/lib/categories'
+import { CAMPUSES } from '@/lib/campuses'
+import CategoryIllustration from '@/components/CategoryIllustration'
+import ListingCard from '@/components/ListingCard'
+import MarketplaceNavigation from '@/components/MarketplaceNavigation'
 import Sidebar from '@/components/Sidebar'
 import { createClient } from '@/lib/supabase/client'
 import type { Listing } from '@/lib/types'
+import { List, MagnifyingGlass, ShieldCheck, SlidersHorizontal, SquaresFour } from '@phosphor-icons/react/ssr'
 
-type FeedListing = Listing & {
-  businesses?: { is_verified?: boolean | null } | null
+type FeedListing = Omit<Listing, 'businesses'> & {
+  businesses?: {
+    is_verified?: boolean | null
+    is_paused?: boolean | null
+    name?: string | null
+  } | {
+    is_verified?: boolean | null
+    is_paused?: boolean | null
+    name?: string | null
+  }[] | null
+  profiles?: { full_name?: string | null } | null
 }
 
 export default function FeedView({
@@ -18,15 +32,30 @@ export default function FeedView({
   userId,
   unreadCount,
   isAdmin = false,
+  initialSearch = '',
+  initialCategory = 'All',
 }: {
   firstName: string
   listings: FeedListing[]
   userId: string
   unreadCount: number
   isAdmin?: boolean
+  initialSearch?: string
+  initialCategory?: string
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<string>('All')
+  const [activeCategory, setActiveCategory] = useState<string>(() =>
+    initialCategory === 'All' || CATEGORIES.some((category) => category.value === initialCategory)
+      ? initialCategory
+      : 'All',
+  )
+  const [search, setSearch] = useState(initialSearch)
+  const [sort, setSort] = useState<'newest' | 'price-asc' | 'price-desc'>('newest')
+  const [campus, setCampus] = useState('')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
 
@@ -44,154 +73,187 @@ export default function FeedView({
     }
   }, [supabase, router, userId])
 
-  const filtered =
-    activeCategory === 'All'
-      ? listings
-      : listings.filter((l) => l.category === activeCategory)
+  const filtered = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase()
+    const minimum = minPrice === '' ? null : Number(minPrice)
+    const maximum = maxPrice === '' ? null : Number(maxPrice)
+    const matches = listings.filter((item) => {
+      const business = Array.isArray(item.businesses) ? item.businesses[0] : item.businesses
+      const searchable = [item.title, item.description, item.category, item.campus, business?.name]
+        .filter(Boolean)
+        .join(' ')
+        .toLocaleLowerCase()
 
-  const getBusinessVerified = (item: Listing) => {
-    const source = item.businesses
-    if (!source) return false
-    if (Array.isArray(source)) return Boolean(source[0]?.is_verified)
-    return Boolean(source.is_verified)
+      return (!query || searchable.includes(query))
+        && (activeCategory === 'All' || item.category === activeCategory)
+        && (!campus || item.campus === campus)
+        && (!verifiedOnly || Boolean(business?.is_verified))
+        && (minimum === null || (item.price !== null && item.price >= minimum))
+        && (maximum === null || (item.price !== null && item.price <= maximum))
+    })
+
+    return matches.sort((first, second) => {
+      if (sort === 'price-asc' || sort === 'price-desc') {
+        if (first.price === null && second.price === null) return 0
+        if (first.price === null) return 1
+        if (second.price === null) return -1
+        return sort === 'price-asc' ? first.price - second.price : second.price - first.price
+      }
+      return new Date(second.created_at).getTime() - new Date(first.created_at).getTime()
+    })
+  }, [listings, search, activeCategory, campus, verifiedOnly, minPrice, maxPrice, sort])
+
+  const activeFilterCount = Number(Boolean(campus)) + Number(verifiedOnly) + Number(Boolean(minPrice)) + Number(Boolean(maxPrice))
+  const activeCategoryDetails = CATEGORIES.find((category) => category.value === activeCategory)
+  const feedBackground = activeCategoryDetails
+    ? getCategoryToneClasses(activeCategoryDetails.tone).canvas
+    : 'bg-white'
+
+  function clearFilters() {
+    setSearch('')
+    setActiveCategory('All')
+    setCampus('')
+    setMinPrice('')
+    setMaxPrice('')
+    setVerifiedOnly(false)
+    setSort('newest')
   }
 
   return (
-    <div className="h-dvh w-full max-w-full overflow-x-hidden flex flex-col bg-white">
+    <div className={`flex h-dvh w-full max-w-full flex-col overflow-x-hidden transition-colors duration-150 ${feedBackground}`}>
 
       {/* TOP BAR — fixed */}
-      <div className="relative flex-shrink-0 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-900">Welcome, {firstName}</span>
-        {isAdmin && (
-          <Link href="/admin" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 border border-blue-700 text-blue-700 rounded-full px-3 py-1 text-[11px] font-semibold">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" />
-              <path d="M15 19l2 2l4 -4" />
-            </svg>
-            Admin
-          </Link>
-        )}
-        <button onClick={() => setSidebarOpen(true)} aria-label={`Menu${unreadCount > 0 ? `, ${unreadCount} unread notifications` : ''}`} className="relative">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-          </svg>
-          {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-600 border-2 border-white" />}
-        </button>
+      <div className="flex-shrink-0 border-b border-blue-100 bg-white px-4 py-3">
+        <div className="relative mx-auto flex w-full max-w-5xl items-center justify-between">
+          <span className="text-sm font-medium tracking-tight text-slate-900 sm:text-base">Welcome, {firstName}</span>
+          {isAdmin && (
+            <Link href="/admin" className="absolute left-1/2 inline-flex min-h-9 -translate-x-1/2 items-center gap-1.5 border border-blue-200 px-3 text-xs font-medium text-blue-800 transition-colors duration-150 hover:bg-blue-50">
+              <ShieldCheck size={16} aria-hidden="true" />
+              Admin
+            </Link>
+          )}
+          <button onClick={() => setSidebarOpen(true)} aria-label={`Menu${unreadCount > 0 ? `, ${unreadCount} unread notifications` : ''}`} className="relative flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors duration-150 hover:bg-blue-50 hover:text-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+            <List size={24} aria-hidden="true" />
+            {unreadCount > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-blue-600" />}
+          </button>
+        </div>
       </div>
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} unreadCount={unreadCount} />
 
       {/* SCROLLABLE CONTENT */}
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 py-3">
+      <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 pb-24 sm:px-6">
+        <div className="mx-auto w-full max-w-5xl">
 
-        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-3">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
-          </svg>
-          <span className="text-xs text-gray-500">Search listings...</span>
+        <div className="mb-4 flex min-h-12 items-center gap-3 rounded-lg border border-blue-100 bg-white px-4 py-2 text-slate-400 transition-colors duration-150 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+          <MagnifyingGlass size={20} aria-hidden="true" />
+          <label htmlFor="feed-search" className="sr-only">Search listings</label>
+          <input
+            id="feed-search"
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search products, categories, campus..."
+            className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-0"
+          />
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            aria-expanded={filtersOpen}
+            className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg bg-blue-50 px-3 text-xs font-semibold text-blue-800 transition-colors duration-150 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          >
+            <SlidersHorizontal size={16} aria-hidden="true" />
+            Filters{activeFilterCount ? ` (${activeFilterCount})` : ''}
+          </button>
         </div>
 
-        <div className="flex gap-1.5 overflow-x-auto mb-3 pb-1">
+        {filtersOpen && (
+          <div className="mb-5 grid gap-4 rounded-xl border border-blue-100 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="text-xs font-medium text-slate-700">
+              Campus
+              <select value={campus} onChange={(event) => setCampus(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800">
+                <option value="">All campuses</option>
+                {CAMPUSES.map((name) => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </label>
+            <label className="text-xs font-medium text-slate-700">
+              Sort by
+              <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800">
+                <option value="newest">Newest first</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+              </select>
+            </label>
+            <fieldset className="text-xs font-medium text-slate-700">
+              <legend>Price range (R)</legend>
+              <div className="mt-1.5 flex gap-2">
+                <input type="number" min="0" inputMode="decimal" value={minPrice} onChange={(event) => setMinPrice(event.target.value)} aria-label="Minimum price" placeholder="Min" className="w-full min-w-0 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-normal" />
+                <input type="number" min="0" inputMode="decimal" value={maxPrice} onChange={(event) => setMaxPrice(event.target.value)} aria-label="Maximum price" placeholder="Max" className="w-full min-w-0 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-normal" />
+              </div>
+            </fieldset>
+            <div className="flex items-end justify-between gap-3">
+              <label className="flex min-h-10 items-center gap-2 text-xs font-medium text-slate-700">
+                <input type="checkbox" checked={verifiedOnly} onChange={(event) => setVerifiedOnly(event.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-blue-700" />
+                Verified sellers only
+              </label>
+              <button type="button" onClick={clearFilters} className="min-h-10 text-xs font-semibold text-blue-700 hover:text-blue-900">Clear all</button>
+            </div>
+          </div>
+        )}
+
+        <nav aria-label="Browse by category" className="mb-6 flex gap-2 overflow-x-auto pb-2">
           <button
             onClick={() => setActiveCategory('All')}
-            className={`text-[10px] px-2.5 py-1.5 rounded-md whitespace-nowrap ${
-              activeCategory === 'All' ? 'bg-blue-700 text-white' : 'border border-gray-200 text-gray-600'
+            aria-pressed={activeCategory === 'All'}
+            className={`flex items-center gap-2 whitespace-nowrap border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${
+              activeCategory === 'All' ? 'border-blue-600 bg-blue-600 text-white' : 'border-blue-100 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700'
             }`}
           >
-            All
+            <SquaresFour size={16} weight={activeCategory === 'All' ? 'fill' : 'regular'} aria-hidden="true" />
+            All listings
           </button>
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.value}
-              onClick={() => setActiveCategory(c.value)}
-              className={`text-[10px] px-2.5 py-1.5 rounded-md whitespace-nowrap ${
-                activeCategory === c.value ? 'bg-blue-700 text-white' : 'border border-gray-200 text-gray-600'
-              }`}
-            >
-              {c.emoji} {c.value}
-            </button>
-          ))}
+          {CATEGORIES.map((c) => {
+            const tone = getCategoryToneClasses(c.tone)
+            const selected = activeCategory === c.value
+            return (
+              <button
+                key={c.value}
+                onClick={() => setActiveCategory(c.value)}
+                aria-pressed={selected}
+                className={`flex min-w-20 flex-col items-center gap-1 border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 ${
+                  selected ? 'border-blue-500 bg-white text-blue-900 ring-1 ring-blue-200' : `border-blue-100 bg-white text-slate-700 hover:border-blue-300 ${tone.soft.split(' ')[0]}`
+                }`}
+              >
+                <CategoryIllustration category={c.value} className="h-10 w-10" />
+                {c.value}
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">Discover</h1>
+            <p className="mt-1 text-sm text-slate-500">Find something great from your campus community.</p>
+          </div>
+          <span className="shrink-0 text-xs font-medium text-slate-400">{filtered.length} {filtered.length === 1 ? 'listing' : 'listings'}</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
   {filtered.length === 0 && (
-    <p className="col-span-2 text-xs text-gray-400 text-center py-8">No listings yet in this category.</p>
+    <div className="col-span-full rounded-xl border border-dashed border-blue-200 bg-white px-4 py-12 text-center">
+      <p className="text-sm font-semibold text-slate-800">No listings match those filters</p>
+      <p className="mt-1 text-sm text-slate-500">Try another search or clear the filters.</p>
+      <button type="button" onClick={clearFilters} className="mt-4 min-h-11 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">Clear filters</button>
+    </div>
   )}
-  {filtered.map((item) => {
-    const isVerified = getBusinessVerified(item)
-
-    return (
-      <Link
-        key={item.id}
-        href={`/listing/${item.id}`}
-        className="block min-w-0 border border-gray-200 rounded-xl p-2"
-      >
-        <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden relative">
-          {item.photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.photo_url} alt={item.title} className="w-full h-full object-contain" />
-          ) : (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
-              <rect x="3" y="5" width="18" height="14" rx="2" />
-              <circle cx="8.5" cy="10" r="1.5" />
-              <path d="M21 15l-5-5L5 19" />
-            </svg>
-          )}
-          {isVerified && (
-            <span
-              aria-label="Hub Verified"
-              className="absolute top-1.5 left-1.5 flex items-center gap-0.5 bg-white/95 text-blue-700 text-[9px] font-semibold rounded-full pl-1 pr-1.5 py-0.5 shadow-sm"
-            >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12l5 5l10 -10" />
-              </svg>
-              Verified
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
-          {isVerified && (
-            <span className="inline-flex items-center rounded-full border border-gray-300 bg-gray-50 px-1.5 py-0.5 text-[9px] font-medium text-gray-700">
-              Verified
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-gray-500 mt-0.5 truncate">
-          {item.price ? `R${item.price}` : item.category} · {item.campus}
-        </p>
-      </Link>
-    )
-  })}
+  {filtered.map((item) => <ListingCard key={item.id} listing={item} />)}
 </div>
+          </div>
 
-      </div>
+        </div>
 
-      {/* BOTTOM NAV — fixed */}
-      <div className="flex-shrink-0 border-t border-gray-200 px-8 py-2 flex items-center justify-between">
-        <Link href="/messages" aria-label="Messages">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8">
-            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-          </svg>
-        </Link>
-
-        <Link
-          href="/post-listing"
-          aria-label="Post a listing"
-          className="w-[42px] h-[42px] bg-blue-700 rounded-full flex items-center justify-center -mt-5 shadow-lg text-white text-xl"
-        >
-          +
-        </Link>
-
-        <Link href="/events" aria-label="Events">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <path d="M16 2v4M8 2v4M3 10h18" />
-          </svg>
-        </Link>
-      </div>
+      <MarketplaceNavigation active="discover" />
 
     </div>
   )

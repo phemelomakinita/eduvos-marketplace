@@ -191,9 +191,9 @@ export default function ProfileForm({
             <p className="text-[10px] text-gray-500">How you appear in Educhat</p>
           </div>
         </div>
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
-        {saved && <p className="text-xs text-green-700 mb-3">Saved.</p>}
-        <button type="submit" disabled={loading} className="w-full bg-blue-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50">
+        {error && <p className="mb-3 text-sm text-blue-900" role="alert">{error}</p>}
+        {saved && <p className="mb-3 text-sm text-blue-800" role="status">Saved.</p>}
+        <button type="submit" disabled={loading} className="min-h-11 w-full rounded-lg bg-blue-600 text-sm font-medium text-white transition-colors duration-150 hover:bg-blue-700 disabled:opacity-50">
           {loading ? 'Saving...' : 'Save changes'}
         </button>
       </form>

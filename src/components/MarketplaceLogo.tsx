@@ -1,27 +1,31 @@
 // Reusable store icon + wordmark, used on both auth screens
-export default function MarketplaceLogo() {
+export default function MarketplaceLogo({ className = 'mb-6' }: { className?: string }) {
   return (
-    <div className="flex items-center gap-2 mb-6">
-      <div className="w-10 h-10 rounded-md border-2 border-blue-700 flex items-center justify-center bg-blue-50">
-        {/* store/stall icon */}
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
         <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
+          width="26"
+          height="26"
+          viewBox="0 0 32 32"
           fill="none"
-          stroke="#1d4ed8"
-          strokeWidth="1.8"
+          stroke="currentColor"
+          strokeWidth="1.7"
           strokeLinecap="round"
           strokeLinejoin="round"
+          aria-hidden="true"
         >
-          <path d="M3 21l18 0" />
-          <path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1l-2 -4h-14l-2 4" />
-          <path d="M5 21l0 -10.15" />
-          <path d="M19 21l0 -10.15" />
-          <path d="M9 21v-4a3 3 0 0 1 6 0v4" />
+          <path d="M5 12 8 5l5 4m6 0 5-4 3 7v4a11 11 0 0 1-22 0v-4Z" />
+          <path d="M8 16a4 4 0 0 1 8 0 4 4 0 0 1 8 0" />
+          <circle cx="12" cy="15" r="1" fill="currentColor" stroke="none" />
+          <circle cx="20" cy="15" r="1" fill="currentColor" stroke="none" />
+          <path d="m14 19 2-2 2 2-2 2-2-2Z" fill="currentColor" stroke="none" />
+          <path d="M12 27h8m-4-4v4" />
         </svg>
       </div>
-      <span className="text-lg font-semibold text-gray-900">Eduvos Marketplace</span>
+      <span className="leading-tight">
+        <span className="block text-sm font-semibold tracking-tight text-slate-950 sm:text-base">Eduvos Marketplace</span>
+        <span className="mt-0.5 block text-[10px] font-medium tracking-wide text-slate-500">Your Campus. Your Marketplace.</span>
+      </span>
     </div>
   )
 }

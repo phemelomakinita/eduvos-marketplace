@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Business } from '@/lib/types'
+import { Pause, Play, Wallet } from '@phosphor-icons/react/ssr'
 
 export default function StoreToolsMenu({
   business,
@@ -79,19 +80,19 @@ export default function StoreToolsMenu({
             <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900">Copy Business Profile</p><p className="text-[10px] text-gray-500 mt-0.5">QR code and link to share</p></div>
           </Link>
           <Link href="/my-store/earnings" onClick={onClose} className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
-            <svg width="20" height="20" className="text-gray-800 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg>
+            <Wallet size={20} className="flex-shrink-0 text-slate-800" aria-hidden="true" />
             <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-900">Earnings</p><p className="text-[10px] text-gray-500 mt-0.5">Your sales and income</p></div>
           </Link>
         </div>
         {business.is_paused ? (
           <button type="button" onClick={resumeStore} disabled={busy} className="flex items-center gap-3 px-4 py-4 border-t border-gray-200 text-left w-full">
-            <svg width="20" height="20" className="text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 4v16l13 -8z" /></svg>
-            <span><span className="block text-sm font-semibold text-amber-700">Resume business account</span><span className="block text-[10px] text-gray-500">Show your store in the feed again</span></span>
+            <Play size={20} className="flex-shrink-0 text-blue-700" aria-hidden="true" />
+            <span><span className="block text-sm font-semibold text-blue-800">Resume business account</span><span className="block text-[10px] text-gray-500">Show your store in the feed again</span></span>
           </button>
         ) : (
           <button type="button" onClick={() => { setError(''); setConfirmPause(true) }} className="flex items-center gap-3 px-4 py-4 border-t border-gray-200 text-left w-full">
-            <svg width="20" height="20" className="text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z" /><path d="M14 5m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z" /></svg>
-            <span><span className="block text-sm font-semibold text-amber-700">Pause business account</span><span className="block text-[10px] text-gray-500">Temporarily hide your store</span></span>
+            <Pause size={20} className="flex-shrink-0 text-blue-700" aria-hidden="true" />
+            <span><span className="block text-sm font-semibold text-blue-800">Pause business account</span><span className="block text-[10px] text-gray-500">Temporarily hide your store</span></span>
           </button>
         )}
       </div>
@@ -106,9 +107,9 @@ export default function StoreToolsMenu({
               <li>You can&apos;t post new listings as the store</li>
               <li>Existing chats keep working. Resume any time.</li>
             </ul>
-            {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
-            <button type="button" onClick={pauseStore} disabled={busy} className="w-full bg-amber-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50 mb-2">{busy ? 'Pausing...' : 'Pause store'}</button>
-            <button type="button" onClick={() => setConfirmPause(false)} className="w-full border border-gray-300 text-gray-800 rounded-md py-2 text-sm font-medium">Cancel</button>
+            {error && <p className="mb-3 text-sm text-blue-900" role="alert">{error}</p>}
+            <button type="button" onClick={pauseStore} disabled={busy} className="mb-2 min-h-11 w-full rounded-lg bg-blue-600 text-sm font-medium text-white disabled:opacity-50">{busy ? 'Pausing...' : 'Pause store'}</button>
+            <button type="button" onClick={() => setConfirmPause(false)} className="min-h-11 w-full rounded-lg border border-blue-200 text-sm font-medium text-slate-800">Cancel</button>
           </div>
         </div>
       )}

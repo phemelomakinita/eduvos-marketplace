@@ -5,7 +5,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/categories'
+import { getCategoryToneClasses } from '@/lib/categories'
 import BackButton from '@/components/BackButton'
+import CategoryIcon from '@/components/CategoryIcon'
 
 export default function RegisterBusinessForm() {
   const [name, setName] = useState('')
@@ -74,9 +76,15 @@ export default function RegisterBusinessForm() {
         >
           <option value="">Select a category</option>
           {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.emoji} {c.value}</option>
+            <option key={c.value} value={c.value}>{c.value}</option>
           ))}
         </select>
+        {category && (
+          <span className={`mb-3 inline-flex items-center gap-2 border px-2.5 py-1.5 text-xs font-medium ${getCategoryToneClasses(CATEGORIES.find((item) => item.value === category)?.tone ?? 'slate').soft}`}>
+            <CategoryIcon category={category} className="h-4 w-4" />
+            {category}
+          </span>
+        )}
 
         <label className="block text-xs text-gray-600 mb-1">Description</label>
         <textarea
@@ -96,7 +104,7 @@ export default function RegisterBusinessForm() {
           className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-sm text-gray-900 bg-white"
         />
 
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
 
         <button
           type="submit"

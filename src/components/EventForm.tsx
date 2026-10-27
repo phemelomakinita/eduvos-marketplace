@@ -28,6 +28,7 @@ type AdminEvent = {
   event_date: string
   campus: string
   poster_url: string | null
+  entry_fee: number | null
   created_at: string
 }
 
@@ -42,6 +43,7 @@ export default function EventForm({
   const [eventDate, setEventDate] = useState(event?.event_date || '')
   const [campus, setCampus] = useState(event?.campus || '')
   const [description, setDescription] = useState(event?.description || '')
+  const [entryFee, setEntryFee] = useState(event?.entry_fee?.toString() ?? '')
   const [posterFile, setPosterFile] = useState<File | null>(null)
   const [posterPreview, setPosterPreview] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -66,6 +68,12 @@ export default function EventForm({
   async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault()
     setError('')
+
+    const trimmedEntryFee = entryFee.trim()
+    if (trimmedEntryFee && (!Number.isFinite(Number(trimmedEntryFee)) || Number(trimmedEntryFee) < 0)) {
+      setError('Enter a valid entry fee of zero or more, or leave it blank if no fee is specified.')
+      return
+    }
 
     if (!event && !posterFile) {
       setError('Please choose an event poster.')
@@ -94,6 +102,7 @@ export default function EventForm({
       description: description || null,
       event_date: eventDate,
       campus,
+      entry_fee: trimmedEntryFee ? Number(trimmedEntryFee) : null,
     }
     const result = event
       ? await supabase.from('events').update({
@@ -169,6 +178,22 @@ export default function EventForm({
           ))}
         </select>
 
+        <label className="block text-xs text-gray-600 mb-1" htmlFor="event-entry-fee">Cost of entry (R)</label>
+        <input
+          id="event-entry-fee"
+          type="number"
+          min="0"
+          step="0.01"
+          inputMode="decimal"
+          value={entryFee}
+          onChange={(inputEvent) => setEntryFee(inputEvent.target.value)}
+          placeholder="Leave blank if not specified"
+          className="w-full border border-gray-300 rounded-md px-3 py-2 mb-1 text-sm text-gray-900 bg-white"
+        />
+        <p className="mb-3 text-xs text-gray-500">
+          Enter 0 for free entry{entryFee.trim() !== '' && Number(entryFee) === 0 ? ' — this event will be labelled “Free entry”.' : '.'}
+        </p>
+
         <label className="block text-xs text-gray-600 mb-1" htmlFor="event-description">Description</label>
         <textarea
           id="event-description"
@@ -179,7 +204,7 @@ export default function EventForm({
           className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
         />
 
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
         <button
           type="submit"
           disabled={loading}

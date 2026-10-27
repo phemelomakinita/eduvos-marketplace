@@ -107,7 +107,7 @@ export default function ReportForm({
           className="w-full border border-gray-300 rounded-md px-3 py-2 mb-3 text-sm text-gray-900 bg-white"
         />
 
-        {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+        {error && <p className="text-xs text-blue-600 mb-3">{error}</p>}
         <button
           type="submit"
           disabled={loading}
